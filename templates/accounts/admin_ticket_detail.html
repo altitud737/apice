@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ ticket.subject }} - Panel Admin{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center gap-4 mb-4">
+                <a href="{% url 'accounts:admin_tickets' %}" class="p-2 hover:bg-zinc-900 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-500"><path d="m15 18-6-6 6-6"/></svg>
+                </a>
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h1 class="text-3xl font-bold text-white">{{ ticket.subject }}</h1>
+                        {% if ticket.status == 'open' %}
+                        <span class="px-3 py-1 bg-yellow-500/10 text-yellow-500 text-xs rounded-full">Abierto</span>
+                        {% elif ticket.status == 'in_progress' %}
+                        <span class="px-3 py-1 bg-blue-500/10 text-blue-500 text-xs rounded-full">En Progreso</span>
+                        {% elif ticket.status == 'resolved' %}
+                        <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-xs rounded-full">Resuelto</span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-zinc-700 text-zinc-400 text-xs rounded-full">Cerrado</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-zinc-500">
+                        <span>{{ ticket.get_category_display }}</span>
+                        <span>•</span>
+                        <span>{{ ticket.user.email }}</span>
+                        <span>•</span>
+                        <span>{{ ticket.company.name }}</span>
+                        <span>•</span>
+                        <span>{{ ticket.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Contenido Principal -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Mensaje Original -->
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-bold">
+                            {{ ticket.user.email|first|upper }}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-white">{{ ticket.user.first_name }} {{ ticket.user.last_name }}</p>
+                            <p class="text-xs text-zinc-500">{{ ticket.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="prose prose-invert max-w-none">
+                        <p class="text-zinc-300 whitespace-pre-wrap">{{ ticket.message }}</p>
+                    </div>
+                </div>
+
+                <!-- Respuesta del Admin -->
+                {% if ticket.admin_response %}
+                <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-emerald-400">Administrador SDP</p>
+                            <p class="text-xs text-emerald-500/60">{{ ticket.updated_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="prose prose-invert max-w-none">
+                        <p class="text-emerald-100 whitespace-pre-wrap">{{ ticket.admin_response }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Formulario de Respuesta -->
+                {% if ticket.status != 'closed' %}
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Responder al Cliente</h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="respond">
+                        <textarea 
+                            name="response" 
+                            rows="6"
+                            required
+                            class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none mb-4"
+                            placeholder="Escribe tu respuesta al cliente..."
+                        >{{ ticket.admin_response }}</textarea>
+                        <button type="submit" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-colors">
+                            Enviar Respuesta
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Cambiar Estado -->
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Estado del Ticket</h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_status">
+                        <select name="status" class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white mb-4 focus:outline-none focus:border-emerald-500">
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if ticket.status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors">
+                            Actualizar Estado
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Información -->
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Información</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-xs text-zinc-500 mb-1">ID</p>
+                            <p class="text-sm text-white font-mono">#{{ ticket.id }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-zinc-500 mb-1">Categoría</p>
+                            <p class="text-sm text-white">{{ ticket.get_category_display }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-zinc-500 mb-1">Usuario</p>
+                            <a href="{% url 'accounts:admin_user_detail' ticket.user.id %}" class="text-sm text-emerald-500 hover:text-emerald-400">
+                                {{ ticket.user.email }}
+                            </a>
+                        </div>
+                        <div>
+                            <p class="text-xs text-zinc-500 mb-1">Empresa</p>
+                            <a href="{% url 'accounts:admin_company_detail' ticket.company.id %}" class="text-sm text-emerald-500 hover:text-emerald-400">
+                                {{ ticket.company.name }}
+                            </a>
+                        </div>
+                        <div>
+                            <p class="text-xs text-zinc-500 mb-1">Creado</p>
+                            <p class="text-sm text-white">{{ ticket.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        {% if ticket.resolved_at %}
+                        <div>
+                            <p class="text-xs text-zinc-500 mb-1">Resuelto</p>
+                            <p class="text-sm text-white">{{ ticket.resolved_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

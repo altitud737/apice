@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}Plantillas de Mensajes | Apice CRM{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col p-8">
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 shrink-0">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight" style="color: #111111;">Plantillas de Mensajes</h1>
+            <p class="text-gray-500 mt-1">Crea plantillas reutilizables para WhatsApp y otros canales.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="{% url 'apice:contacts' %}" class="px-4 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 transition-all flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Volver a Contactos
+            </a>
+            <button onclick="openNewTemplateModal()" class="text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                Nueva Plantilla
+            </button>
+        </div>
+    </header>
+
+    <!-- Templates List -->
+    <div class="flex-1 overflow-auto">
+        <div class="grid gap-4">
+            {% for template in templates %}
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:border-gray-300 transition-all">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-lg font-bold" style="color: #111111;">{{ template.name }}</h3>
+                            {% if template.is_active %}
+                            <span class="text-xs font-bold bg-green-50 text-green-600 px-2 py-1 rounded">Activa</span>
+                            {% else %}
+                            <span class="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded">Inactiva</span>
+                            {% endif %}
+                        </div>
+                        {% if template.description %}
+                        <p class="text-sm text-gray-500 mb-3">{{ template.description }}</p>
+                        {% endif %}
+                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <p class="text-sm whitespace-pre-wrap" style="color: #111111;">{{ template.message }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 ml-4">
+                        <button onclick="openEditTemplateModal({{ template.id }}, '{{ template.name|escapejs }}', '{{ template.description|escapejs }}', `{{ template.message|escapejs }}`, {{ template.is_active|lower }})" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                        </button>
+                        <button onclick="deleteTemplate({{ template.id }}, '{{ template.name|escapejs }}')" class="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="bg-white border border-gray-200 rounded-2xl p-12 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-300"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <h3 class="text-lg font-bold mb-2" style="color: #111111;">No hay plantillas configuradas</h3>
+                <p class="text-gray-500 mb-6">Crea tu primera plantilla para enviar mensajes rápidamente</p>
+                <button onclick="openNewTemplateModal()" class="text-white px-6 py-3 rounded-xl text-sm font-bold transition-all" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    Crear Primera Plantilla
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nueva Plantilla -->
+<div id="newTemplateModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-bold mb-4" style="color: #111111;">Nueva Plantilla de Mensaje</h3>
+        <form method="POST" action="{% url 'apice:create_template' %}" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Nombre *</label>
+                    <input type="text" name="name" required placeholder="Ej: Bienvenida" class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;">
+                </div>
+                <div class="flex items-center gap-2 pt-7">
+                    <input type="checkbox" name="is_active" id="newIsActive" checked class="w-4 h-4 rounded border-gray-300 bg-white focus:ring-gray-400">
+                    <label for="newIsActive" class="text-sm text-gray-600">Plantilla activa</label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Descripción</label>
+                <input type="text" name="description" placeholder="Describe el propósito de esta plantilla..." class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Mensaje *</label>
+                <textarea name="message" rows="6" required placeholder="Escribe tu mensaje aquí...&#10;&#10;Puedes usar:&#10;{nombre} - Nombre del contacto&#10;{empresa} - Nombre de la empresa" class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;"></textarea>
+            </div>
+            
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <p class="text-xs text-gray-600">
+                    <strong class="text-gray-700">Variables disponibles:</strong><br>
+                    <code class="font-mono" style="color: #111111;">{nombre}</code> - Se reemplaza con el nombre del contacto<br>
+                    <code class="font-mono" style="color: #111111;">{empresa}</code> - Se reemplaza con el nombre de la empresa
+                </p>
+            </div>
+            
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="flex-1 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    Crear Plantilla
+                </button>
+                <button type="button" onclick="closeNewTemplateModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 border border-gray-300 transition-all">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Plantilla -->
+<div id="editTemplateModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-bold mb-4" style="color: #111111;">Editar Plantilla</h3>
+        <form id="editTemplateForm" method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Nombre *</label>
+                    <input type="text" id="editTemplateName" name="name" required class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;">
+                </div>
+                <div class="flex items-center gap-2 pt-7">
+                    <input type="checkbox" name="is_active" id="editIsActive" class="w-4 h-4 rounded border-gray-300 bg-white focus:ring-gray-400">
+                    <label for="editIsActive" class="text-sm text-gray-600">Plantilla activa</label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Descripción</label>
+                <input type="text" id="editTemplateDescription" name="description" class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Mensaje *</label>
+                <textarea id="editTemplateMessage" name="message" rows="6" required class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;"></textarea>
+            </div>
+            
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="flex-1 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    Guardar Cambios
+                </button>
+                <button type="button" onclick="closeEditTemplateModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 border border-gray-300 transition-all">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentTemplateId = null;
+
+function openNewTemplateModal() {
+    document.getElementById('newTemplateModal').classList.remove('hidden');
+}
+
+function closeNewTemplateModal() {
+    document.getElementById('newTemplateModal').classList.add('hidden');
+}
+
+function openEditTemplateModal(id, name, description, message, isActive) {
+    currentTemplateId = id;
+    document.getElementById('editTemplateName').value = name;
+    document.getElementById('editTemplateDescription').value = description;
+    document.getElementById('editTemplateMessage').value = message;
+    document.getElementById('editIsActive').checked = isActive;
+    document.getElementById('editTemplateForm').action = `/templates/${id}/edit/`;
+    document.getElementById('editTemplateModal').classList.remove('hidden');
+}
+
+function closeEditTemplateModal() {
+    document.getElementById('editTemplateModal').classList.add('hidden');
+}
+
+function deleteTemplate(id, name) {
+    if (!confirm(`¿Estás seguro de que deseas eliminar la plantilla "${name}"?`)) {
+        return;
+    }
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/templates/${id}/delete/`;
+    
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = 'csrfmiddlewaretoken';
+    csrf.value = getCookie('csrftoken');
+    form.appendChild(csrf);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

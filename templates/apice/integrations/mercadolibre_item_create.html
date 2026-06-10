@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Publicación — Apice CRM{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'apice:mercadolibre:products_list' %}" class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="m15 18-6-6 6-6"/></svg>
+            </a>
+            <div>
+                <h1 class="text-lg font-bold" style="color: #111111;">Nueva Publicación</h1>
+                <p class="text-xs text-gray-400">{{ integration.nickname }} · Crear artículo en MercadoLibre</p>
+            </div>
+        </div>
+        <!-- Step indicator -->
+        <div class="flex items-center gap-2">
+            <span id="stepBadge1" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-900 text-white">
+                1. Categoría
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300"><polyline points="9 18 15 12 9 6"/></svg>
+            <span id="stepBadge2" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-400">
+                2. Detalles
+            </span>
+        </div>
+    </div>
+
+    <form method="post" action="{% url 'apice:mercadolibre:item_create' %}" id="itemForm">
+        {% csrf_token %}
+        <input type="hidden" id="category_id" name="category_id" value="{{ form_data.category_id|default:'' }}">
+        <input type="hidden" id="category_name" name="category_name" value="{{ form_data.category_name|default:'' }}">
+
+        <!-- ======================================================= -->
+        <!-- STEP 1: Category Selection                                -->
+        <!-- ======================================================= -->
+        <div id="step1">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+                <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-[13px] font-semibold" style="color: #111111;">Elegí una categoría</h2>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Navegá el árbol o buscá por nombre de producto</p>
+                    </div>
+                </div>
+
+                <!-- Search bar -->
+                <div class="px-5 py-3 border-b border-gray-50 bg-gray-50/50">
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="categorySearchInput"
+                            placeholder="Buscá por nombre de producto... ej: zapatillas nike"
+                            class="w-full pl-9 pr-3.5 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder-gray-300 transition-all bg-white">
+                    </div>
+                    <!-- Search predictions -->
+                    <div id="searchResults" class="hidden mt-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div id="searchResultsInner" class="max-h-56 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <!-- Breadcrumb -->
+                <div id="catBreadcrumb" class="px-5 py-2 border-b border-gray-50 hidden">
+                    <nav class="flex items-center gap-1.5 flex-wrap">
+                        <button type="button" onclick="loadRootCategories()" class="text-[11px] font-medium text-gray-400 hover:text-gray-600 transition-colors">
+                            Todas
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Category list -->
+                <div id="catList" class="divide-y divide-gray-50 max-h-[420px] overflow-y-auto">
+                    <div class="flex items-center justify-center py-12">
+                        <svg class="animate-spin text-gray-300 mr-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <span class="text-[12px] text-gray-400">Cargando categorías...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <a href="{% url 'apice:mercadolibre:products_list' %}" class="px-4 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                    Cancelar
+                </a>
+                <p class="text-[11px] text-gray-400">Seleccioná una categoría final (sin subcategorías) para continuar</p>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- STEP 2: Item Details Form                                 -->
+        <!-- ======================================================= -->
+        <div id="step2" class="hidden">
+            <!-- Selected category badge -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+                <div class="px-5 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-violet-500"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[11px] text-gray-400">Categoría seleccionada</p>
+                            <p id="selectedCatName" class="text-[13px] font-semibold truncate" style="color: #111111;"></p>
+                        </div>
+                    </div>
+                    <button type="button" id="changeCatBtn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors ring-1 ring-gray-200 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                        Cambiar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="text-[13px] font-semibold" style="color: #111111;">Título</h2>
+                </div>
+                <div class="px-5 py-4">
+                    <input type="text" id="title" name="title" maxlength="60" required
+                        value="{{ form_data.title|default:'' }}"
+                        placeholder="Ej: Zapatillas Nike Air Max 90 Negras Talle 42"
+                        class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder-gray-300 transition-all">
+                    <div class="flex items-center justify-between mt-1">
+                        <p class="text-[11px] text-gray-400">Máximo 60 caracteres. Sé específico: marca, modelo, talle, color.</p>
+                        <span id="titleCount" class="text-[11px] text-gray-400">0/60</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price, Quantity, Condition -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="text-[13px] font-semibold" style="color: #111111;">Precio y stock</h2>
+                </div>
+                <div class="px-5 py-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="price" class="block text-[12px] font-medium text-gray-500 mb-1.5">Precio *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-gray-400">$</span>
+                                <input type="number" id="price" name="price" min="1" step="0.01" required
+                                    value="{{ form_data.price|default:'' }}"
+                                    class="w-full pl-7 pr-3.5 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-right">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="currency_id" class="block text-[12px] font-medium text-gray-500 mb-1.5">Moneda</label>
+                            <select id="currency_id" name="currency_id" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white transition-all">
+                                <option value="ARS" {% if form_data.currency_id == 'ARS' or not form_data.currency_id %}selected{% endif %}>ARS</option>
+                                <option value="USD" {% if form_data.currency_id == 'USD' %}selected{% endif %}>USD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="available_quantity" class="block text-[12px] font-medium text-gray-500 mb-1.5">Stock *</label>
+                            <input type="number" id="available_quantity" name="available_quantity" min="1" required
+                                value="{{ form_data.available_quantity|default:'1' }}"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-right">
+                        </div>
+                        <div>
+                            <label for="condition" class="block text-[12px] font-medium text-gray-500 mb-1.5">Condición</label>
+                            <select id="condition" name="condition" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white transition-all">
+                                <option value="new" {% if form_data.condition == 'new' or not form_data.condition %}selected{% endif %}>Nuevo</option>
+                                <option value="used" {% if form_data.condition == 'used' %}selected{% endif %}>Usado</option>
+                                <option value="not_specified" {% if form_data.condition == 'not_specified' %}selected{% endif %}>No especificado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listing Type -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="text-[13px] font-semibold" style="color: #111111;">Tipo de publicación</h2>
+                </div>
+                <div class="px-5 py-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="listing_type_id" value="gold_special" class="peer sr-only" {% if form_data.listing_type_id == 'gold_special' or not form_data.listing_type_id %}checked{% endif %}>
+                            <div class="px-4 py-3 rounded-xl border-2 border-gray-200 peer-checked:border-gray-900 peer-checked:bg-gray-50 transition-all">
+                                <p class="text-[13px] font-semibold" style="color: #111111;">Premium</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">Máxima exposición. Comisión más alta.</p>
+                            </div>
+                        </label>
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="listing_type_id" value="gold_pro" class="peer sr-only" {% if form_data.listing_type_id == 'gold_pro' %}checked{% endif %}>
+                            <div class="px-4 py-3 rounded-xl border-2 border-gray-200 peer-checked:border-gray-900 peer-checked:bg-gray-50 transition-all">
+                                <p class="text-[13px] font-semibold" style="color: #111111;">Clásica</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">Buena exposición. Comisión media.</p>
+                            </div>
+                        </label>
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="listing_type_id" value="free" class="peer sr-only" {% if form_data.listing_type_id == 'free' %}checked{% endif %}>
+                            <div class="px-4 py-3 rounded-xl border-2 border-gray-200 peer-checked:border-gray-900 peer-checked:bg-gray-50 transition-all">
+                                <p class="text-[13px] font-semibold" style="color: #111111;">Gratuita</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">Sin comisión. Menor exposición.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pictures -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="text-[13px] font-semibold" style="color: #111111;">Imágenes</h2>
+                </div>
+                <div class="px-5 py-4">
+                    <label for="pictures" class="block text-[12px] font-medium text-gray-500 mb-1.5">URLs de imágenes</label>
+                    <textarea id="pictures" name="pictures" rows="4"
+                        placeholder="Pegá una URL de imagen por línea:&#10;https://ejemplo.com/foto1.jpg&#10;https://ejemplo.com/foto2.jpg"
+                        class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder-gray-300 transition-all font-mono resize-none">{{ form_data.pictures|default:'' }}</textarea>
+                    <p class="text-[11px] text-gray-400 mt-1">Una URL por línea. La primera imagen será la principal. Formato: JPG, PNG. Mín 500x500px.</p>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="text-[13px] font-semibold" style="color: #111111;">Descripción</h2>
+                </div>
+                <div class="px-5 py-4">
+                    <textarea id="description" name="description" rows="6"
+                        placeholder="Descripción detallada del producto. Incluí características, medidas, materiales, etc."
+                        class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder-gray-300 transition-all resize-none">{{ form_data.description|default:'' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Dynamic Attributes -->
+            <div id="attributesSection" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4 hidden">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="text-[13px] font-semibold" style="color: #111111;">Atributos de la categoría</h2>
+                    <p class="text-[11px] text-gray-400 mt-0.5">Completá los atributos requeridos por MercadoLibre para esta categoría</p>
+                </div>
+                <div id="attributesContainer" class="px-5 py-4 space-y-3"></div>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex items-center justify-between">
+                <button type="button" id="backToStep1" class="px-4 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                    ← Cambiar categoría
+                </button>
+                <button type="submit" id="submitBtn" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-semibold text-white shadow-sm transition-all hover:opacity-90" style="background-color: #111111;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Publicar en MercadoLibre
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    const CHILDREN_URL = "{% url 'apice:mercadolibre:category_children_api' category_id='__CAT__' %}";
+    const ATTRS_URL = "{% url 'apice:mercadolibre:category_attributes_api' category_id='__CAT__' %}";
+    const PREDICT_URL = "{% url 'apice:mercadolibre:predict_category_api' %}";
+
+    let currentParentId = null;
+
+    // ---- Step management ----
+    function showStep(n) {
+        document.getElementById('step1').classList.toggle('hidden', n !== 1);
+        document.getElementById('step2').classList.toggle('hidden', n !== 2);
+        const b1 = document.getElementById('stepBadge1');
+        const b2 = document.getElementById('stepBadge2');
+        if (n === 1) {
+            b1.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-900 text-white';
+            b2.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-400';
+        } else {
+            b1.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-violet-50 text-violet-600';
+            b2.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-900 text-white';
+        }
+    }
+
+    document.getElementById('changeCatBtn').addEventListener('click', function() { showStep(1); });
+    document.getElementById('backToStep1').addEventListener('click', function() { showStep(1); });
+
+    // ---- Category browser ----
+    function renderCategories(children, pathFromRoot) {
+        const list = document.getElementById('catList');
+        const bc = document.getElementById('catBreadcrumb');
+
+        // Breadcrumb
+        if (pathFromRoot && pathFromRoot.length > 0) {
+            let html = '<nav class="flex items-center gap-1.5 flex-wrap">';
+            html += '<button type="button" onclick="loadRootCategories()" class="text-[11px] font-medium text-gray-400 hover:text-gray-600 transition-colors">Todas</button>';
+            pathFromRoot.forEach(function(crumb, i) {
+                html += '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 shrink-0"><polyline points="9 18 15 12 9 6"/></svg>';
+                if (i === pathFromRoot.length - 1) {
+                    html += '<span class="text-[11px] font-semibold" style="color:#111;">' + crumb.name + '</span>';
+                } else {
+                    html += '<button type="button" onclick="loadChildren(\'' + crumb.id + '\')" class="text-[11px] font-medium text-gray-400 hover:text-gray-600 transition-colors">' + crumb.name + '</button>';
+                }
+            });
+            html += '</nav>';
+            bc.innerHTML = html;
+            bc.classList.remove('hidden');
+        } else {
+            bc.classList.add('hidden');
+        }
+
+        // List
+        if (!children || children.length === 0) {
+            list.innerHTML = '<div class="flex flex-col items-center py-10 px-4 text-center"><p class="text-[12px] text-gray-500 font-medium">Sin subcategorías</p><p class="text-[11px] text-gray-400 mt-1">Esta categoría es una categoría final.</p></div>';
+            return;
+        }
+
+        let html = '';
+        children.forEach(function(cat) {
+            html += '<div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors cat-row" data-id="' + cat.id + '" data-name="' + escHtml(cat.name) + '" data-has-children="' + (cat.has_children ? '1' : '0') + '">';
+            if (cat.picture) {
+                html += '<img src="' + cat.picture + '" alt="" class="w-9 h-9 rounded-lg object-contain bg-gray-50 shrink-0">';
+            } else {
+                html += '<div class="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-violet-400"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></div>';
+            }
+            html += '<div class="min-w-0 flex-1">';
+            html += '<p class="text-[13px] font-medium text-gray-700 truncate">' + escHtml(cat.name) + '</p>';
+            if (cat.total_items) {
+                html += '<p class="text-[11px] text-gray-400">' + Number(cat.total_items).toLocaleString('es-AR') + ' publicaciones</p>';
+            }
+            html += '</div>';
+            if (cat.has_children) {
+                html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 shrink-0"><polyline points="9 18 15 12 9 6"/></svg>';
+            } else {
+                html += '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-600 ring-1 ring-green-200 shrink-0">Seleccionar</span>';
+            }
+            html += '</div>';
+        });
+        list.innerHTML = html;
+
+        // Attach click handlers
+        document.querySelectorAll('.cat-row').forEach(function(el) {
+            el.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                const hasChildren = this.dataset.hasChildren === '1';
+                if (hasChildren) {
+                    loadChildren(id);
+                } else {
+                    selectCategory(id, name);
+                }
+            });
+        });
+    }
+
+    function escHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    window.loadRootCategories = function() {
+        currentParentId = null;
+        document.getElementById('catBreadcrumb').classList.add('hidden');
+        loadRootViaAjax();
+    };
+
+    // Load children via AJAX
+    window.loadChildren = function(categoryId) {
+        currentParentId = categoryId;
+        const list = document.getElementById('catList');
+        list.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin text-gray-300 mr-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span class="text-[12px] text-gray-400">Cargando...</span></div>';
+
+        fetch(CHILDREN_URL.replace('__CAT__', categoryId))
+            .then(r => r.json())
+            .then(data => {
+                renderCategories(data.children || [], data.path_from_root || []);
+                // If no children, this is a leaf — auto-select
+                if (!data.has_children || (data.children && data.children.length === 0)) {
+                    // Get the name from path_from_root last element
+                    const path = data.path_from_root || [];
+                    const name = path.length > 0 ? path[path.length - 1].name : categoryId;
+                    selectCategory(categoryId, name);
+                }
+            })
+            .catch(function() {
+                list.innerHTML = '<div class="px-5 py-8 text-center text-[12px] text-red-400">Error al cargar subcategorías</div>';
+            });
+    };
+
+    // Select a leaf category → go to step 2
+    function selectCategory(id, name) {
+        document.getElementById('category_id').value = id;
+        document.getElementById('category_name').value = name;
+        document.getElementById('selectedCatName').textContent = name;
+        showStep(2);
+        loadAttributes(id);
+    }
+
+    // ---- Category search (predict) ----
+    const searchInput = document.getElementById('categorySearchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchInner = document.getElementById('searchResultsInner');
+    let searchTimeout = null;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const q = this.value.trim();
+        if (q.length < 3) {
+            searchResults.classList.add('hidden');
+            return;
+        }
+        searchResults.classList.remove('hidden');
+        searchInner.innerHTML = '<div class="px-4 py-3 text-[12px] text-gray-400 text-center">Buscando...</div>';
+        searchTimeout = setTimeout(function() {
+            fetch(PREDICT_URL + "?q=" + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.predictions && data.predictions.length > 0) {
+                        let html = '';
+                        data.predictions.forEach(function(p) {
+                            const displayName = p.category_name || p.domain || p.category_id;
+                            html += '<div class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 search-pick" data-id="' + p.category_id + '" data-name="' + escHtml(displayName) + '">';
+                            html += '<p class="text-[12px] font-medium text-gray-700">' + escHtml(displayName) + '</p>';
+                            html += '<p class="text-[10px] text-gray-400">' + p.category_id + (p.domain ? ' · ' + p.domain : '') + '</p>';
+                            html += '</div>';
+                        });
+                        searchInner.innerHTML = html;
+                        document.querySelectorAll('.search-pick').forEach(function(el) {
+                            el.addEventListener('click', function() {
+                                selectCategory(this.dataset.id, this.dataset.name);
+                                searchResults.classList.add('hidden');
+                                searchInput.value = '';
+                            });
+                        });
+                    } else {
+                        searchInner.innerHTML = '<div class="px-4 py-3 text-[12px] text-gray-400 text-center">No se encontraron categorías</div>';
+                    }
+                })
+                .catch(function() {
+                    searchInner.innerHTML = '<div class="px-4 py-3 text-[12px] text-red-400 text-center">Error al buscar</div>';
+                });
+        }, 400);
+    });
+
+    // ---- Attributes ----
+    function loadAttributes(categoryId) {
+        const section = document.getElementById('attributesSection');
+        const container = document.getElementById('attributesContainer');
+        container.innerHTML = '<p class="text-[12px] text-gray-400">Cargando atributos...</p>';
+        section.classList.remove('hidden');
+
+        fetch(ATTRS_URL.replace('__CAT__', categoryId))
+            .then(r => r.json())
+            .then(data => {
+                if (data.attributes && data.attributes.length > 0) {
+                    let html = '';
+                    data.attributes.forEach(function(attr) {
+                        html += '<div>';
+                        html += '<label class="block text-[12px] font-medium text-gray-500 mb-1">' + escHtml(attr.name);
+                        if (attr.required) html += ' <span class="text-red-400">*</span>';
+                        html += '</label>';
+                        if (attr.values && attr.values.length > 0) {
+                            html += '<select name="attr_' + attr.id + '" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-1 focus:ring-gray-900 bg-white">';
+                            html += '<option value="">Seleccionar...</option>';
+                            attr.values.forEach(function(v) {
+                                html += '<option value="' + escHtml(v.name || v.id) + '">' + escHtml(v.name || v.id) + '</option>';
+                            });
+                            html += '</select>';
+                        } else {
+                            html += '<input type="text" name="attr_' + attr.id + '" placeholder="' + escHtml(attr.hint || attr.name) + '" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-1 focus:ring-gray-900 placeholder-gray-300">';
+                        }
+                        html += '</div>';
+                    });
+                    container.innerHTML = html;
+                } else {
+                    section.classList.add('hidden');
+                }
+            })
+            .catch(function() {
+                section.classList.add('hidden');
+            });
+    }
+
+    // ---- Title counter ----
+    const titleInput = document.getElementById('title');
+    const titleCount = document.getElementById('titleCount');
+    function updateCount() {
+        const len = titleInput.value.length;
+        titleCount.textContent = len + '/60';
+        titleCount.style.color = len > 55 ? '#ef4444' : '#9ca3af';
+    }
+    titleInput.addEventListener('input', updateCount);
+    updateCount();
+
+    // ---- Submit loading state ----
+    document.getElementById('itemForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Publicando...';
+    });
+
+    // ---- Init: check URL params or form_data for pre-selected category ----
+    const existingCatId = document.getElementById('category_id').value;
+    const existingCatName = document.getElementById('category_name').value;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCatId = urlParams.get('category_id');
+    const urlCatName = urlParams.get('category_name');
+
+    if (existingCatId) {
+        // Re-render after validation error — go straight to step 2
+        selectCategory(existingCatId, existingCatName || existingCatId);
+    } else if (urlCatId) {
+        // Came from categories browser with pre-selected category
+        selectCategory(urlCatId, urlCatName || urlCatId);
+    } else {
+        // Default: show step 1 and load root categories via the categories_index page
+        // We'll load root categories via a fetch to the categories index page and parse
+        // Actually, let's add a simple root-level AJAX load using the children API
+        // by loading the page in the background. Simplest: just show the page with
+        // a message and link to browse categories.
+        // Even better: auto-load root categories via AJAX to the categories page
+        showStep(1);
+        loadRootViaAjax();
+    }
+
+    function loadRootViaAjax() {
+        const list = document.getElementById('catList');
+        list.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin text-gray-300 mr-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span class="text-[12px] text-gray-400">Cargando categorías raíz...</span></div>';
+        fetch("{% url 'apice:mercadolibre:root_categories_api' %}")
+            .then(r => r.json())
+            .then(data => {
+                renderCategories(data.categories || [], []);
+            })
+            .catch(function() {
+                list.innerHTML = '<div class="px-5 py-8 text-center"><p class="text-[12px] text-gray-500 mb-3">No se pudieron cargar las categorías</p><a href="{% url "apice:mercadolibre:categories_index" %}" class="text-[12px] font-medium text-violet-600 hover:underline">Abrir navegador de categorías →</a></div>';
+            });
+    }
+})();
+</script>
+{% endblock %}

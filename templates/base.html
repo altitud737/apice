@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Apice CRM{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: block; }
+        .htmx-request.htmx-indicator { display: block; }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+            transition: all 0.3s ease-out;
+        }
+        
+        #sidebar {
+            will-change: width;
+        }
+        
+        #sidebar.collapsed {
+            width: 60px !important;
+            min-width: 60px !important;
+        }
+        
+        #sidebar.collapsed .sidebar-content {
+            display: none;
+        }
+        
+        #sidebar .sidebar-content {
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        /* Scrollbar minimalista */
+        #sidebar .sidebar-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        #sidebar .sidebar-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        #sidebar .sidebar-content::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 2px;
+        }
+        
+        #sidebar .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        
+        /* Mostrar elementos colapsados solo cuando está colapsado */
+        #sidebar:not(.collapsed) #hamburgerBtn,
+        #sidebar:not(.collapsed) #collapsedNav,
+        #sidebar:not(.collapsed) #collapsedFooter {
+            display: none !important;
+        }
+        
+        #sidebar.collapsed #hamburgerBtn,
+        #sidebar.collapsed #collapsedNav,
+        #sidebar.collapsed #collapsedFooter {
+            display: block !important;
+        }
+        
+        #sidebar.collapsed #collapsedNav {
+            display: flex !important;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand': '#111111',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full" style="color: #111111;">
+    <div class="flex h-full">
+        {% if user.is_authenticated %}
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out relative">
+            <!-- Header con título y botón collapse -->
+            <div class="p-6 sidebar-content flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight" style="color: #111111;">Apice</h1>
+                    <p class="text-xs text-gray-500 mt-1">{{ user.company.name }}</p>
+                </div>
+                <button id="collapseBtn" onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 group" title="Colapsar menú">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-brand transition-colors">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Botón hamburguesa cuando está colapsado (fijo en la posición del título de la página) -->
+            <button id="hamburgerBtn" onclick="toggleSidebar()" class="absolute top-8 left-1/2 -translate-x-1/2 p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 group" title="Expandir menú">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-brand transition-colors">
+                    <path d="M4 6h16"/>
+                    <path d="M4 12h16"/>
+                    <path d="M4 18h16"/>
+                </svg>
+            </button>
+
+            <!-- Navegación expandida -->
+            <div class="flex-1 px-3 py-4 overflow-y-auto sidebar-content">
+                <nav class="space-y-1">
+                    {% if user.is_superadmin %}
+                    <!-- Menú Super Admin -->
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                        Dashboard
+                    </a>
+                    <a href="{% url 'accounts:admin_companies' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'admin_companies' or request.resolver_match.url_name == 'admin_company_detail' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
+                        Empresas
+                    </a>
+                    <a href="{% url 'accounts:admin_users' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'admin_users' or request.resolver_match.url_name == 'admin_user_detail' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Usuarios
+                    </a>
+                    <a href="{% url 'accounts:admin_tickets' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'admin_tickets' or request.resolver_match.url_name == 'admin_ticket_detail' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
+                        Tickets
+                    </a>
+                    <a href="{% url 'accounts:admin_demos' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'admin_demos' or request.resolver_match.url_name == 'admin_demo_detail' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/><path d="M17 17h.01"/></svg>
+                        Demos
+                    </a>
+                    <a href="{% url 'accounts:admin_notifications' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'admin_notifications' or request.resolver_match.url_name == 'admin_create_notification' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                        Notificaciones
+                    </a>
+                    {% else %}
+                    <!-- Menú Cliente -->
+                    <a href="{% url 'apice:notifications' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'notifications' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                        Notificaciones
+                        {% if unread_notifications_count > 0 %}
+                        <span class="ml-auto bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'apice:dashboard' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                        Dashboard
+                    </a>
+                    <a href="{% url 'apice:leads_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'leads_list' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Leads
+                    </a>
+                    <a href="{% url 'apice:contacts' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'contacts' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                        Contactos
+                    </a>
+                    <a href="{% url 'apice:pipeline' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'pipeline' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                        Pipeline
+                    </a>
+                    <a href="{% url 'apice:mail_inbox' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if 'mail' in request.resolver_match.url_name %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        Mail
+                    </a>
+                    <a href="{% url 'apice:whatsapp:messages' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if 'whatsapp' in request.resolver_match.url_name %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M13 12H7"/></svg>
+                        WhatsApp
+                    </a>
+                    <a href="{% url 'apice:manage_templates' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'manage_templates' %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Plantillas
+                    </a>
+                    {% if ml_integration_active %}
+                    <!-- MercadoLibre section -->
+                    <div class="mt-1">
+                        <a href="{% url 'apice:mercadolibre:status' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if 'mercadolibre' in request.path %}text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                            MercadoLibre
+                            {% with total=ml_pending_questions_count|add:ml_unread_messages_count %}
+                            {% if total > 0 %}
+                            <span class="ml-auto bg-yellow-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{{ total }}</span>
+                            {% endif %}
+                            {% endwith %}
+                        </a>
+                        <!-- ML Sub-menu -->
+                        <div class="ml-7 mt-0.5 space-y-0.5 border-l-2 border-gray-100 pl-3">
+                            <a href="{% url 'apice:mercadolibre:questions_inbox' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'questions' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Preguntas
+                                {% if ml_pending_questions_count > 0 %}
+                                <span class="ml-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold px-1 py-0.5 rounded">{{ ml_pending_questions_count }}</span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:messages_inbox' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'messages' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Mensajes
+                                {% if ml_unread_messages_count > 0 %}
+                                <span class="ml-1 bg-blue-100 text-blue-700 text-[10px] font-bold px-1 py-0.5 rounded">{{ ml_unread_messages_count }}</span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:orders_list' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'orders' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Órdenes
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:metrics_dashboard' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'metrics' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Métricas
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:products_list' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'products' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Productos
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:ads_list' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'ads' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Publicidad
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:promotions_list' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'promotions' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Ofertas
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:categories_index' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'categories' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Categorías
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:item_create' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'items/create' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Nueva publicación
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:autoreply_list' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if 'autoreply' in request.path and 'mercadolibre' in request.path %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Plantillas auto-reply
+                            </a>
+                            <a href="{% url 'apice:mercadolibre:status' %}" class="block px-2 py-1.5 rounded-lg text-xs font-medium transition-colors {% if request.path == '/integrations/mercadolibre/status/' %}bg-gray-100 text-brand{% else %}text-gray-500 hover:text-brand hover:bg-gray-50{% endif %}">
+                                Estado
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Separador con etiqueta -->
+                    <div class="pt-6 pb-3 px-3">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Configuración</p>
+                    </div>
+                    
+                    <a href="{% url 'apice:integrations' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'integrations' or 'integrations' in request.resolver_match.url_name %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+                        Integraciones
+                    </a>
+                    <a href="{% url 'apice:settings' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'settings' or 'settings' in request.resolver_match.url_name %}bg-gray-100 text-brand font-semibold{% else %}text-gray-600 hover:text-brand hover:bg-gray-50{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Configuración
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            
+            <!-- Iconos de navegación cuando está colapsado -->
+            <nav id="collapsedNav" class="flex-1 pt-20 pb-4 space-y-2 flex-col">
+                <a href="{% url 'apice:notifications' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group relative" title="Notificaciones">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'notifications' %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    {% if unread_notifications_count > 0 %}
+                    <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ unread_notifications_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'apice:dashboard' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group" title="Dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'dashboard' %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                </a>
+                <a href="{% url 'apice:leads_list' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group" title="Leads">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'leads_list' %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </a>
+                <a href="{% url 'apice:contacts' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group" title="Contactos">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'contacts' %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                </a>
+                <a href="{% url 'apice:pipeline' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group" title="Pipeline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'pipeline' %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                </a>
+                <a href="{% url 'apice:manage_templates' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group" title="Plantillas">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'manage_templates' %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </a>
+                {% if ml_integration_active %}
+                <a href="{% url 'apice:mercadolibre:questions_inbox' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group relative" title="MercadoLibre">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if 'mercadolibre' in request.path %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                    {% if ml_pending_questions_count > 0 %}
+                    <span class="absolute top-1 right-1 w-4 h-4 bg-yellow-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ ml_pending_questions_count }}</span>
+                    {% endif %}
+                </a>
+                {% endif %}
+                
+                <!-- Separador -->
+                <div class="py-2">
+                    <div class="h-px bg-gray-200 mx-3"></div>
+                </div>
+                
+                <a href="{% url 'apice:integrations' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group" title="Integraciones">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'integrations' or 'integrations' in request.resolver_match.url_name %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+                </a>
+                <a href="{% url 'apice:settings' %}" class="flex items-center justify-center p-3 hover:bg-gray-100 transition-colors group" title="Configuración">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{% if request.resolver_match.url_name == 'settings' or 'settings' in request.resolver_match.url_name %}text-brand{% else %}text-gray-400 group-hover:text-brand{% endif %}"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </a>
+            </nav>
+
+            <!-- Footer con perfil y logout (siempre visible) -->
+            <div class="mt-auto border-t border-gray-200">
+                <!-- Versión expandida -->
+                <div class="p-4 sidebar-content">
+                    <form method="POST" action="{% url 'account_logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all border border-gray-200 hover:border-red-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                            Cerrar Sesión
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Versión colapsada -->
+                <div id="collapsedFooter" class="py-4">
+                    <form method="POST" action="{% url 'account_logout' %}" class="flex items-center justify-center">
+                        {% csrf_token %}
+                        <button type="submit" class="p-3 hover:bg-red-50 rounded-lg transition-all group" title="Cerrar Sesión">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 group-hover:text-red-700"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto bg-gray-50">
+            <!-- Messages -->
+            {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-2">
+                {% for message in messages %}
+                <div class="bg-white border {% if message.tags == 'success' %}border-green-500{% elif message.tags == 'error' %}border-red-500{% else %}border-gray-300{% endif %} rounded-xl px-4 py-3 shadow-lg flex items-center gap-3 min-w-[300px] animate-slide-in">
+                    {% if message.tags == 'success' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><polyline points="20 6 9 17 4 12"/></svg>
+                    {% elif message.tags == 'error' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+                    {% endif %}
+                    <span class="text-sm" style="color: #111111;">{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Modals Container -->
+    <div id="modals-here"></div>
+
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Auto-hide messages after 5 seconds
+        setTimeout(() => {
+            const messages = document.querySelectorAll('.animate-slide-in');
+            messages.forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateX(100%)';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 5000);
+        
+        // Sidebar toggle functionality - CSS maneja todo
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+        
+        // Prevenir que el sidebar se expanda al hacer click en los iconos
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const collapsedNav = document.getElementById('collapsedNav');
+            const collapsedFooter = document.getElementById('collapsedFooter');
+            
+            // Prevenir que clicks en el nav colapsado expandan el sidebar
+            if (collapsedNav) {
+                collapsedNav.addEventListener('click', function(e) {
+                    // Permitir que los enlaces funcionen normalmente
+                    // pero prevenir cualquier propagación que pueda expandir el sidebar
+                    e.stopPropagation();
+                });
+            }
+            
+            if (collapsedFooter) {
+                collapsedFooter.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

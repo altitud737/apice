@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Preguntas — Apice CRM{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-full">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="px-6 pt-5 pb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-yellow-50 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold" style="color: #111111;">Preguntas</h1>
+                        <p class="text-xs text-gray-400">{{ integration.nickname }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'apice:mercadolibre:autoreply_list' %}" class="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors flex items-center gap-1.5 border border-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        Plantillas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="px-6 pb-3 flex items-center gap-2">
+            <button
+                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all {% if current_filter == '' %}bg-gray-900 text-white shadow-sm{% else %}text-gray-500 hover:bg-gray-100{% endif %}"
+                hx-get="{% url 'apice:mercadolibre:questions_inbox_list' %}"
+                hx-target="#questions-list"
+                hx-push-url="{% url 'apice:mercadolibre:questions_inbox' %}"
+            >
+                Todas <span class="ml-0.5 opacity-60">{{ counts.all }}</span>
+            </button>
+            <button
+                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all {% if current_filter == 'UNANSWERED' %}bg-yellow-500 text-white shadow-sm{% else %}text-gray-500 hover:bg-gray-100{% endif %}"
+                hx-get="{% url 'apice:mercadolibre:questions_inbox_list' %}?status=UNANSWERED"
+                hx-target="#questions-list"
+                hx-push-url="{% url 'apice:mercadolibre:questions_inbox' %}?status=UNANSWERED"
+            >
+                Pendientes <span class="ml-0.5 opacity-60">{{ counts.unanswered }}</span>
+            </button>
+            <button
+                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all {% if current_filter == 'ANSWERED' %}bg-green-600 text-white shadow-sm{% else %}text-gray-500 hover:bg-gray-100{% endif %}"
+                hx-get="{% url 'apice:mercadolibre:questions_inbox_list' %}?status=ANSWERED"
+                hx-target="#questions-list"
+                hx-push-url="{% url 'apice:mercadolibre:questions_inbox' %}?status=ANSWERED"
+            >
+                Respondidas <span class="ml-0.5 opacity-60">{{ counts.answered }}</span>
+            </button>
+
+            <!-- Search -->
+            <div class="ml-auto relative">
+                <input
+                    type="text"
+                    name="q"
+                    placeholder="Buscar..."
+                    class="w-52 pl-8 pr-3 py-1.5 border border-gray-200 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-gray-50 focus:bg-white transition-colors"
+                    hx-get="{% url 'apice:mercadolibre:questions_inbox_list' %}"
+                    hx-trigger="keyup changed delay:400ms"
+                    hx-target="#questions-list"
+                    hx-include="this"
+                >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two-panel layout -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Left: Questions list -->
+        <div class="w-[380px] min-w-[380px] border-r border-gray-200 overflow-y-auto bg-white" id="questions-list"
+             hx-get="{% url 'apice:mercadolibre:questions_inbox_list' %}{% if current_filter %}?status={{ current_filter }}{% endif %}"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+        >
+            <div class="flex items-center justify-center h-32">
+                <div class="animate-spin rounded-full h-5 w-5 border-2 border-gray-200 border-t-gray-500"></div>
+            </div>
+        </div>
+
+        <!-- Right: Question detail -->
+        <div class="flex-1 overflow-y-auto bg-gray-50" id="question-detail">
+            <div class="flex flex-col items-center justify-center h-full text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <p class="mt-4 text-sm text-gray-400">Seleccioná una pregunta</p>
+                <p class="text-xs text-gray-300 mt-1">para ver el detalle y responder</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

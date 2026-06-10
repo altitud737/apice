@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ company.name }} - Detalles - Apice{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <a href="{% url 'accounts:admin_companies' %}" class="text-sm text-zinc-500 hover:text-white mb-2 inline-block">← Volver a empresas</a>
+                <h1 class="text-3xl font-bold text-white mb-2">{{ company.name }}</h1>
+                <code class="text-sm text-zinc-500 bg-zinc-900 px-3 py-1 rounded">API Key: {{ company.api_key }}</code>
+            </div>
+            <form method="POST" action="{% url 'accounts:admin_delete_company' company.id %}" onsubmit="return confirm('¿ELIMINAR esta empresa y TODOS sus datos? Esta acción no se puede deshacer.');">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-medium transition-colors">
+                    Eliminar Empresa
+                </button>
+            </form>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <p class="text-sm text-zinc-400 mb-1">Leads</p>
+                <p class="text-2xl font-bold text-white">{{ stats.leads }}</p>
+            </div>
+            <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <p class="text-sm text-zinc-400 mb-1">Contactos</p>
+                <p class="text-2xl font-bold text-white">{{ stats.contacts }}</p>
+            </div>
+            <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <p class="text-sm text-zinc-400 mb-1">Deals</p>
+                <p class="text-2xl font-bold text-white">{{ stats.deals }}</p>
+            </div>
+            <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <p class="text-sm text-zinc-400 mb-1">Actividades</p>
+                <p class="text-2xl font-bold text-white">{{ stats.activities }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Usuarios -->
+            <div class="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
+                <div class="p-6 border-b border-zinc-800">
+                    <h2 class="text-xl font-bold text-white">Usuarios ({{ users.count }})</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    {% for user in users %}
+                    <div class="flex items-center justify-between p-4 bg-zinc-900 rounded-lg">
+                        <div>
+                            <p class="font-medium text-white">{{ user.get_full_name|default:user.username }}</p>
+                            <p class="text-sm text-zinc-400">{{ user.email }}</p>
+                        </div>
+                        <button onclick="showResetPassword({{ user.id }}, '{{ user.email }}')" class="text-sm text-emerald-500 hover:text-emerald-400">
+                            Resetear Contraseña
+                        </button>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-zinc-500 py-4">No hay usuarios</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Configuración -->
+            <div class="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
+                <div class="p-6 border-b border-zinc-800">
+                    <h2 class="text-xl font-bold text-white">Configuración</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-zinc-900 rounded-lg">
+                        <div>
+                            <p class="font-medium text-white">Pipelines</p>
+                            <p class="text-sm text-zinc-400">{{ stats.pipelines }} configurados</p>
+                        </div>
+                        <span class="text-emerald-500">{{ stats.stages }} stages</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-zinc-900 rounded-lg">
+                        <div>
+                            <p class="font-medium text-white">Templates</p>
+                            <p class="text-sm text-zinc-400">Mensajes predefinidos</p>
+                        </div>
+                        <span class="text-blue-500">{{ stats.templates }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-zinc-900 rounded-lg">
+                        <div>
+                            <p class="font-medium text-white">MercadoLibre</p>
+                            <p class="text-sm text-zinc-400">Integración</p>
+                        </div>
+                        {% if has_mercadolibre %}
+                        <span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-xs rounded-full">Conectado</span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-zinc-800 text-zinc-500 text-xs rounded-full">No conectado</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-zinc-900 rounded-lg">
+                        <div>
+                            <p class="font-medium text-white">Zoho Mail</p>
+                            <p class="text-sm text-zinc-400">Email integrado</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            {% if has_zoho_mail %}
+                            <span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-xs rounded-full">Conectado</span>
+                            {% else %}
+                            <span class="px-2 py-1 bg-zinc-800 text-zinc-500 text-xs rounded-full">No conectado</span>
+                            {% endif %}
+                            <button onclick="showConfigureMail()" class="px-3 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 text-xs rounded-lg transition-colors">
+                                Configurar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Reset Password -->
+<div id="resetPasswordModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-white mb-4">Resetear Contraseña</h3>
+        <form method="POST" id="resetPasswordForm">
+            {% csrf_token %}
+            <p class="text-sm text-zinc-400 mb-4">Usuario: <span id="resetUserEmail" class="text-white"></span></p>
+            <div class="mb-4">
+                <label for="new_password" class="block text-sm font-medium text-zinc-400 mb-2">Nueva Contraseña</label>
+                <input 
+                    type="text" 
+                    name="new_password" 
+                    id="new_password"
+                    required
+                    class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
+                    placeholder="Nueva contraseña"
+                >
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-colors">
+                    Actualizar
+                </button>
+                <button type="button" onclick="hideResetPassword()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Configure Zoho Mail -->
+<div id="configureMailModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-6 max-w-lg w-full mx-4">
+        <h3 class="text-xl font-bold text-white mb-2">Configurar Zoho Mail</h3>
+        <p class="text-sm text-zinc-400 mb-6">Configura el email para {{ company.name }}</p>
+        <form method="POST" action="{% url 'accounts:admin_configure_mail' company.id %}">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label for="email_address" class="block text-sm font-medium text-zinc-400 mb-2">Email del Cliente</label>
+                    <input 
+                        type="email" 
+                        name="email_address" 
+                        id="email_address"
+                        required
+                        class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                        placeholder="cliente@empresa.com"
+                    >
+                    <p class="text-xs text-zinc-500 mt-1">Email que usará el cliente para enviar/recibir</p>
+                </div>
+
+                <div>
+                    <label for="client_id" class="block text-sm font-medium text-zinc-400 mb-2">Client ID (Zoho)</label>
+                    <input 
+                        type="text" 
+                        name="client_id" 
+                        id="client_id"
+                        required
+                        class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm"
+                        placeholder="1000.XXXXXXXXXX"
+                    >
+                </div>
+
+                <div>
+                    <label for="client_secret" class="block text-sm font-medium text-zinc-400 mb-2">Client Secret (Zoho)</label>
+                    <input 
+                        type="text" 
+                        name="client_secret" 
+                        id="client_secret"
+                        required
+                        class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm"
+                        placeholder="xxxxxxxxxxxxxxxxxxxxxxxx"
+                    >
+                </div>
+
+                <div>
+                    <label for="region" class="block text-sm font-medium text-zinc-400 mb-2">Región</label>
+                    <select 
+                        name="region" 
+                        id="region"
+                        class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                    >
+                        <option value="com">Global (.com)</option>
+                        <option value="eu">Europa (.eu)</option>
+                        <option value="in">India (.in)</option>
+                        <option value="com.au">Australia (.com.au)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-colors">
+                    Guardar Configuración
+                </button>
+                <button type="button" onclick="hideConfigureMail()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showResetPassword(userId, email) {
+    document.getElementById('resetPasswordModal').classList.remove('hidden');
+    document.getElementById('resetUserEmail').textContent = email;
+    document.getElementById('resetPasswordForm').action = `/superadmin/admin/users/${userId}/reset-password/`;
+}
+
+function hideResetPassword() {
+    document.getElementById('resetPasswordModal').classList.add('hidden');
+}
+
+function showConfigureMail() {
+    document.getElementById('configureMailModal').classList.remove('hidden');
+}
+
+function hideConfigureMail() {
+    document.getElementById('configureMailModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

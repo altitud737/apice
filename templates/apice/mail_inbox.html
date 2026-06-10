@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Bandeja de Entrada - Mail | Apice{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold mb-2" style="color: #111111;">Mail</h1>
+                <p class="text-gray-500">{{ integration.email_address }}</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{% url 'apice:mail_compose' %}" class="px-4 py-2 text-white rounded-xl font-medium transition-colors flex items-center gap-2" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg>
+                    Nuevo Email
+                </a>
+                <a href="{% url 'apice:mail_settings' %}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-xl font-medium transition-colors" style="color: #111111;">
+                    Configuración
+                </a>
+            </div>
+        </div>
+
+        <div class="flex gap-6">
+            <!-- Sidebar de Carpetas -->
+            <div class="w-64 shrink-0">
+                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                    <h3 class="text-sm font-bold mb-3" style="color: #111111;">Carpetas</h3>
+                    <nav class="space-y-1">
+                        {% for folder in folders %}
+                        <a href="?folder={{ folder.folderName }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors {% if current_folder == folder.folderName %}bg-gray-100{% else %}text-gray-600 hover:bg-gray-50{% endif %}" {% if current_folder == folder.folderName %}style="color: #111111; font-weight: 600;"{% endif %}>
+                            <span>{{ folder.folderName|title }}</span>
+                            {% if folder.unreadCount > 0 %}
+                            <span class="px-2 py-0.5 text-white text-xs rounded-full" style="background-color: #111111;">{{ folder.unreadCount }}</span>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Lista de Emails -->
+            <div class="flex-1">
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                    {% if messages %}
+                    <div class="divide-y divide-gray-200">
+                        {% for message in messages %}
+                        <a href="{% url 'apice:mail_view' message.messageId %}" class="block p-4 hover:bg-gray-50 transition-colors {% if not message.isRead %}bg-blue-50/30{% endif %}">
+                            <div class="flex items-start gap-4">
+                                <!-- Avatar -->
+                                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold shrink-0" style="color: #111111;">
+                                    {{ message.fromAddress.0|upper }}
+                                </div>
+                                
+                                <!-- Contenido -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-4 mb-1">
+                                        <p class="font-medium truncate" style="color: {% if not message.isRead %}#111111{% else %}#6b7280{% endif %};">
+                                            {{ message.fromAddress }}
+                                        </p>
+                                        <span class="text-xs text-gray-500 shrink-0">
+                                            {{ message.receivedTime|date:"d M" }}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm truncate mb-1" style="color: {% if not message.isRead %}#111111{% else %}#6b7280{% endif %}; font-weight: {% if not message.isRead %}600{% else %}400{% endif %};">
+                                        {{ message.subject }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 truncate">
+                                        {{ message.summary|default:"Sin vista previa" }}
+                                    </p>
+                                </div>
+
+                                <!-- Indicadores -->
+                                <div class="flex items-center gap-2 shrink-0">
+                                    {% if message.hasAttachment %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                    {% endif %}
+                                    {% if not message.isRead %}
+                                    <div class="w-2 h-2 rounded-full" style="background-color: #111111;"></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if has_next or page > 1 %}
+                    <div class="p-4 border-t border-gray-200 flex justify-between">
+                        {% if page > 1 %}
+                        <a href="?folder={{ current_folder }}&page={{ page|add:'-1' }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors" style="color: #111111;">
+                            Anterior
+                        </a>
+                        {% else %}
+                        <div></div>
+                        {% endif %}
+                        
+                        {% if has_next %}
+                        <a href="?folder={{ current_folder }}&page={{ page|add:'1' }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors" style="color: #111111;">
+                            Siguiente
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="p-12 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-300"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <p class="text-gray-500">No hay emails en esta carpeta</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

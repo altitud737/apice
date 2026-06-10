@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuración de Mail - Apice{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2" style="color: #111111;">Configuración de Zoho Mail</h1>
+            <p class="text-gray-500">Conecta tu cuenta de Zoho Mail para gestionar emails desde Apice</p>
+        </div>
+
+        <!-- Estado de Conexión -->
+        {% if integration and integration.is_active %}
+        <div class="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
+            <div class="flex items-start gap-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold mb-1" style="color: #111111;">Zoho Mail Conectado</h3>
+                    <p class="text-green-600 mb-3">{{ integration.email_address }}</p>
+                    <div class="flex gap-3">
+                        <a href="{% url 'apice:mail_inbox' %}" class="px-4 py-2 text-white rounded-lg font-medium transition-colors" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                            Ir a Bandeja de Entrada
+                        </a>
+                        <form method="POST" action="{% url 'apice:mail_disconnect' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors" style="color: #111111;">
+                                Desconectar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulario de Configuración -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-6" style="color: #111111;">Credenciales de Zoho Mail</h2>
+            
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="email_address" class="block text-sm font-medium text-gray-600 mb-2">Email de Zoho Mail</label>
+                    <input 
+                        type="email" 
+                        name="email_address" 
+                        id="email_address"
+                        value="{{ integration.email_address|default:'' }}"
+                        required
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+                        placeholder="tu@dominio.com"
+                        style="color: #111111;"
+                    >
+                </div>
+
+                <div>
+                    <label for="client_id" class="block text-sm font-medium text-gray-600 mb-2">Client ID</label>
+                    <input 
+                        type="text" 
+                        name="client_id" 
+                        id="client_id"
+                        value="{{ integration.client_id|default:'' }}"
+                        required
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors font-mono text-sm"
+                        placeholder="1000.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                        style="color: #111111;"
+                    >
+                </div>
+
+                <div>
+                    <label for="client_secret" class="block text-sm font-medium text-gray-600 mb-2">Client Secret</label>
+                    <input 
+                        type="password" 
+                        name="client_secret" 
+                        id="client_secret"
+                        value="{{ integration.client_secret|default:'' }}"
+                        required
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors font-mono text-sm"
+                        placeholder="••••••••••••••••••••••••••••••••"
+                        style="color: #111111;"
+                    >
+                </div>
+
+                <div>
+                    <label for="region" class="block text-sm font-medium text-gray-600 mb-2">Región</label>
+                    <select 
+                        name="region" 
+                        id="region"
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+                        style="color: #111111;"
+                    >
+                        <option value="com" {% if integration.region == 'com' %}selected{% endif %}>US - mail.zoho.com</option>
+                        <option value="eu" {% if integration.region == 'eu' %}selected{% endif %}>EU - mail.zoho.eu</option>
+                        <option value="in" {% if integration.region == 'in' %}selected{% endif %}>IN - mail.zoho.in</option>
+                        <option value="com.au" {% if integration.region == 'com.au' %}selected{% endif %}>AU - mail.zoho.com.au</option>
+                        <option value="jp" {% if integration.region == 'jp' %}selected{% endif %}>JP - mail.zoho.jp</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="px-6 py-3 text-white rounded-xl font-medium transition-colors" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                        Guardar Configuración
+                    </button>
+                    {% if integration and not integration.is_active %}
+                    <a href="{% url 'apice:mail_connect' %}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors">
+                        Conectar Zoho Mail
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Instrucciones -->
+        <div class="mt-8 bg-white border border-gray-200 rounded-xl p-6">
+            <h3 class="text-lg font-bold mb-4" style="color: #111111;">Cómo Obtener las Credenciales</h3>
+            <div class="space-y-4 text-sm text-gray-600">
+                <div>
+                    <p class="font-medium mb-2" style="color: #111111;">1. Ir a Zoho API Console</p>
+                    <p>Accede a <a href="https://api-console.zoho.com/" target="_blank" class="text-blue-600 hover:text-blue-700 underline">https://api-console.zoho.com/</a></p>
+                </div>
+                <div>
+                    <p class="font-medium mb-2" style="color: #111111;">2. Crear Cliente</p>
+                    <p>Click en "Add Client" → "Server-based Applications"</p>
+                </div>
+                <div>
+                    <p class="font-medium mb-2" style="color: #111111;">3. Configurar Redirect URI</p>
+                    <p class="font-mono text-xs bg-black text-white px-3 py-2 rounded border border-gray-800">{{ request.build_absolute_uri }}</p>
+                </div>
+                <div>
+                    <p class="font-medium mb-2" style="color: #111111;">4. Copiar Credenciales</p>
+                    <p>Copia el Client ID y Client Secret y pégalos arriba</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

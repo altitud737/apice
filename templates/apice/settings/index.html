@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuración - Apice{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-7xl mx-auto">
+    <header class="mb-10">
+        <h1 class="text-3xl font-bold tracking-tight" style="color: #111111;">Configuración</h1>
+        <p class="text-gray-500 mt-1">Gestiona la configuración de tu empresa y cuenta</p>
+    </header>
+
+    <!-- Grid de Opciones -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Perfil de Empresa -->
+        <a href="{% url 'apice:settings_company' %}" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-gray-300 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold" style="color: #111111;">Perfil de Empresa</h3>
+                    <p class="text-xs text-gray-500">{{ company.name }}</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">Configura el nombre, industria, ubicación y descripción de tu empresa</p>
+        </a>
+
+        <!-- Usuarios -->
+        {% if user.is_company_admin or user.can_manage_users %}
+        <a href="{% url 'apice:settings_users' %}" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-gray-300 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold" style="color: #111111;">Usuarios</h3>
+                    <p class="text-xs text-gray-500">{{ total_users }} usuario{{ total_users|pluralize }}</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">Gestiona el equipo y permisos de acceso</p>
+        </a>
+        {% endif %}
+
+        <!-- Seguridad -->
+        <a href="{% url 'apice:settings_security' %}" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-gray-300 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold" style="color: #111111;">Seguridad</h3>
+                    <p class="text-xs text-gray-500">Contraseña y API</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">Gestiona tu contraseña y claves de API</p>
+        </a>
+
+        <!-- Soporte -->
+        <a href="{% url 'apice:settings_support' %}" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-gray-300 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold" style="color: #111111;">Soporte</h3>
+                    <p class="text-xs text-gray-500">Ayuda y asistencia</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">Reporta problemas, sugiere mejoras o solicita integraciones</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

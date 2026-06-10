@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Notificaciones del Sistema - Apice{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold" style="color: #111111;">Notificaciones del Sistema</h1>
+                <p class="text-gray-500 mt-1">Envía notificaciones a todos los usuarios de la plataforma</p>
+            </div>
+            <a href="{% url 'accounts:admin_create_notification' %}" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                Nueva Notificación
+            </a>
+        </div>
+
+        {% if notifications %}
+        <div class="space-y-3">
+            {% for notification in notifications %}
+            <div class="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-sm transition-all">
+                <div class="flex items-start gap-4">
+                    <!-- Icono -->
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+                        {% if notification.category == 'update' %}bg-blue-100
+                        {% elif notification.category == 'feature' %}bg-emerald-100
+                        {% elif notification.category == 'maintenance' %}bg-amber-100
+                        {% elif notification.category == 'security' %}bg-red-100
+                        {% else %}bg-purple-100{% endif %}">
+                        <span class="text-lg">{{ notification.get_category_icon }}</span>
+                    </div>
+
+                    <!-- Contenido -->
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-sm text-brand mb-1">{{ notification.title }}</h3>
+                        <p class="text-sm text-gray-600 mb-2">{{ notification.message|truncatewords:30 }}</p>
+                        <div class="flex items-center gap-3 text-xs text-gray-400">
+                            <span>{{ notification.created_at|timesince }} atrás</span>
+                            <span class="px-2 py-0.5 rounded-full
+                                {% if notification.category == 'update' %}bg-blue-100 text-blue-700
+                                {% elif notification.category == 'feature' %}bg-emerald-100 text-emerald-700
+                                {% elif notification.category == 'maintenance' %}bg-amber-100 text-amber-700
+                                {% elif notification.category == 'security' %}bg-red-100 text-red-700
+                                {% else %}bg-purple-100 text-purple-700{% endif %}">
+                                {{ notification.get_category_display }}
+                            </span>
+                            <span>Enviada a {{ notification.user_notifications.count }} usuario{{ notification.user_notifications.count|pluralize:"s" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <form method="POST" action="{% url 'accounts:admin_delete_notification' notification.id %}" onsubmit="return confirm('¿Eliminar esta notificación?')">
+                        {% csrf_token %}
+                        <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white border border-gray-200 rounded-2xl p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            </div>
+            <h3 class="font-semibold text-gray-700 mb-1">Sin notificaciones enviadas</h3>
+            <p class="text-sm text-gray-500 mb-4">Aún no has enviado notificaciones a los usuarios.</p>
+            <a href="{% url 'accounts:admin_create_notification' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                Crear primera notificación
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

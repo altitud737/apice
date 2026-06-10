@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Demo - Apice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .input-custom:focus {
+            box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.2);
+        }
+        .btn-custom {
+            background-color: #111111;
+        }
+        .btn-custom:hover {
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+    <!-- Main Content -->
+    <div class="flex-1 flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white shadow-lg rounded-xl p-8">
+            <!-- Logo -->
+            <img src="{% static 'image/apicelogin.png' %}" alt="Apice" class="h-20 mx-auto mb-6">
+
+            <!-- Mensajes -->
+            {% if messages %}
+            <div class="mb-6 space-y-3">
+                {% for message in messages %}
+                <div class="p-3 rounded-lg text-sm {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Demo Request Form -->
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="name" class="block text-sm font-medium mb-2" style="color: #111111;">Nombre</label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        id="name"
+                        required
+                        autocomplete="name"
+                        class="input-custom w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none"
+                        style="color: #111111;"
+                        placeholder="Tu nombre completo"
+                    >
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium mb-2" style="color: #111111;">Email</label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="email"
+                        required
+                        autocomplete="email"
+                        class="input-custom w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none"
+                        style="color: #111111;"
+                        placeholder="tu@email.com"
+                    >
+                </div>
+
+                <div>
+                    <label for="company" class="block text-sm font-medium mb-2" style="color: #111111;">Empresa</label>
+                    <input 
+                        type="text" 
+                        name="company" 
+                        id="company"
+                        required
+                        autocomplete="organization"
+                        class="input-custom w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none"
+                        style="color: #111111;"
+                        placeholder="Nombre de tu empresa"
+                    >
+                </div>
+
+                <div>
+                    <label for="message" class="block text-sm font-medium mb-2" style="color: #111111;">¿Qué te interesaría encontrar en Apice?</label>
+                    <textarea 
+                        name="message" 
+                        id="message"
+                        required
+                        rows="4"
+                        class="input-custom w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none resize-none"
+                        style="color: #111111;"
+                        placeholder="Cuéntanos qué necesitas y cómo podemos ayudarte..."
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn-custom w-full text-white py-2 rounded-lg transition">
+                    Solicitar demo
+                </button>
+            </form>
+
+            <!-- Link volver -->
+            <div class="mt-6 text-center">
+                <a href="{% url 'account_login' %}" class="text-sm hover:opacity-70" style="color: #111111;">
+                    ← Volver al inicio de sesión
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-6 text-center">
+        <p class="text-xs text-gray-500">
+            Apice es un software desarrollado y operado por SDP.<br>
+            © 2026 SDP. Todos los derechos reservados.
+        </p>
+    </footer>
+</body>
+</html>

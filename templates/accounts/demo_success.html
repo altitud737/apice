@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud Recibida - Apice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .btn-custom {
+            background-color: #111111;
+        }
+        .btn-custom:hover {
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+    <!-- Main Content -->
+    <div class="flex-1 flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white shadow-lg rounded-xl p-8 text-center">
+            <!-- Logo -->
+            <img src="{% static 'image/apicelogin.png' %}" alt="Apice" class="h-20 mx-auto mb-6">
+
+            <!-- Success Icon -->
+            <div class="mb-6">
+                <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Message -->
+            <h1 class="text-2xl font-semibold mb-3" style="color: #111111;">
+                ¡Solicitud Recibida!
+            </h1>
+            <p class="mb-8" style="color: #111111;">
+                Gracias por tu interés en Apice. Revisaremos tu solicitud y nos pondremos en contacto contigo pronto.
+            </p>
+
+            <!-- Action Button -->
+            <a href="{% url 'account_login' %}" class="btn-custom inline-block w-full text-white py-2 rounded-lg transition">
+                Volver al inicio de sesión
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-6 text-center">
+        <p class="text-xs text-gray-500">
+            Apice es un software desarrollado y operado por SDP.<br>
+            © 2026 SDP. Todos los derechos reservados.
+        </p>
+    </footer>
+</body>
+</html>

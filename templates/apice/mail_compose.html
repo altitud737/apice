@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Email - Mail | Apice{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold mb-2" style="color: #111111;">Nuevo Email</h1>
+                <p class="text-gray-500">Enviar desde {{ integration.email_address }}</p>
+            </div>
+            <a href="{% url 'apice:mail_inbox' %}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-xl font-medium transition-colors" style="color: #111111;">
+                Cancelar
+            </a>
+        </div>
+
+        <!-- Formulario -->
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+                <!-- Para -->
+                <div>
+                    <label for="to" class="block text-sm font-medium text-gray-600 mb-2">Para</label>
+                    <input 
+                        type="text" 
+                        name="to" 
+                        id="to"
+                        value="{{ to_email }}"
+                        required
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+                        placeholder="destinatario@ejemplo.com, otro@ejemplo.com"
+                        style="color: #111111;"
+                    >
+                    <p class="mt-1 text-xs text-gray-500">Separa múltiples destinatarios con comas</p>
+                </div>
+
+                <!-- CC (Opcional) -->
+                <div>
+                    <label for="cc" class="block text-sm font-medium text-gray-600 mb-2">CC (Opcional)</label>
+                    <input 
+                        type="text" 
+                        name="cc" 
+                        id="cc"
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+                        placeholder="cc@ejemplo.com"
+                        style="color: #111111;"
+                    >
+                </div>
+
+                <!-- BCC (Opcional) -->
+                <div>
+                    <label for="bcc" class="block text-sm font-medium text-gray-600 mb-2">BCC (Opcional)</label>
+                    <input 
+                        type="text" 
+                        name="bcc" 
+                        id="bcc"
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+                        placeholder="bcc@ejemplo.com"
+                        style="color: #111111;"
+                    >
+                </div>
+
+                <!-- Asunto -->
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-600 mb-2">Asunto</label>
+                    <input 
+                        type="text" 
+                        name="subject" 
+                        id="subject"
+                        value="{{ subject }}"
+                        required
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+                        placeholder="Asunto del email"
+                        style="color: #111111;"
+                    >
+                </div>
+
+                <!-- Mensaje -->
+                <div>
+                    <label for="body" class="block text-sm font-medium text-gray-600 mb-2">Mensaje</label>
+                    <textarea 
+                        name="body" 
+                        id="body"
+                        rows="12"
+                        required
+                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors resize-none"
+                        placeholder="Escribe tu mensaje aquí..."
+                        style="color: #111111;"
+                    ></textarea>
+                    <p class="mt-1 text-xs text-gray-500">Puedes usar HTML para formato</p>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3">
+                <button type="submit" class="px-6 py-3 text-white rounded-xl font-medium transition-colors flex items-center gap-2" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Enviar Email
+                </button>
+                <a href="{% url 'apice:mail_inbox' %}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-medium transition-colors" style="color: #111111;">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+
+        <!-- Tips -->
+        <div class="mt-8 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+            <div class="flex gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <div class="text-sm text-blue-400">
+                    <p class="font-medium mb-1">Tips para un mejor email:</p>
+                    <ul class="space-y-1 text-xs">
+                        <li>• Usa un asunto claro y descriptivo</li>
+                        <li>• Mantén el mensaje conciso y al punto</li>
+                        <li>• Revisa ortografía antes de enviar</li>
+                        <li>• Puedes usar HTML básico: &lt;b&gt;negrita&lt;/b&gt;, &lt;i&gt;cursiva&lt;/i&gt;, &lt;br&gt; para saltos de línea</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
