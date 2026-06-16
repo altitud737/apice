@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo Verificacion de Apice para Produccion
+echo Verificacion del proyecto para Produccion
 echo ========================================
 echo.
 
@@ -25,14 +25,14 @@ if not errorlevel 1 (
 echo OK - Todas las migraciones aplicadas
 
 echo.
-echo [3/6] Verificando base de datos...
-if not exist "db.sqlite3" (
-    echo ERROR: Base de datos no existe
-    echo Ejecuta: python manage.py migrate
+echo [3/6] Verificando conexion a PostgreSQL...
+python -c "from django.db import connection; connection.ensure_connection(); print('OK - PostgreSQL accesible:', connection.settings_dict.get('NAME'))"
+if errorlevel 1 (
+    echo ERROR: No se pudo conectar a PostgreSQL
+    echo Revisa DATABASE_URL en .env
     pause
     exit /b 1
 )
-echo OK - Base de datos existe
 
 echo.
 echo [4/6] Verificando API de leads...
@@ -65,7 +65,7 @@ echo ========================================
 echo VERIFICACION COMPLETADA
 echo ========================================
 echo.
-echo Apice esta listo para:
+echo El proyecto esta listo para:
 echo   - Desarrollo local
 echo   - Demos a clientes
 echo   - Deploy a produccion

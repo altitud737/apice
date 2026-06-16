@@ -1,6 +1,6 @@
 """
-Configuración de producción para Apice
-Importa desde settings.py y sobrescribe valores para producción
+Configuración de producción.
+Importa desde settings.py y sobrescribe valores para producción.
 """
 
 from .settings import *
@@ -26,11 +26,10 @@ SECURE_HSTS_SECONDS = 31536000  # 1 año
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-# Database
-# Para producción, usar PostgreSQL:
-# DATABASE_URL=postgresql://user:password@host:5432/apice_db
+# Database (PostgreSQL obligatorio)
+# DATABASE_URL=postgresql://user:password@host:5432/dbname
 DATABASES = {
-    'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+    'default': env.db('DATABASE_URL'),
 }
 
 # Static files (CSS, JavaScript, Images)
@@ -75,6 +74,21 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'erp_core': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'inventario': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'ventas': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
 
@@ -86,7 +100,7 @@ if env('EMAIL_HOST', default=None):
     EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
     EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
     EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
-    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@apice.com')
+    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')
 
 # Cache (opcional - Redis para producción)
 if env('REDIS_URL', default=None):

@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Read .env file
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-apice-secret-key')
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-dev-secret-key-change-in-production')
 
 DEBUG = env('DEBUG', default=True)
 
@@ -48,6 +48,11 @@ INSTALLED_APPS = [
     # Local apps
     'accounts',
     'apice',
+
+    # ERP apps
+    'erp_core',
+    'inventario',
+    'ventas',
 ]
 
 SITE_ID = 1
@@ -61,8 +66,8 @@ else:
     ZOHO_ZEPTOMAIL_API_KEY_TOKEN = env('ZOHO_ZEPTOMAIL_API_KEY_TOKEN', default='')
     ZOHO_ZEPTOMAIL_HOSTED_REGION = env('ZOHO_ZEPTOMAIL_HOSTED_REGION', default='zeptomail.zoho.com')
 
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@tuapice.com')
-SERVER_EMAIL = env('SERVER_EMAIL', default='noreply@tuapice.com')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')
+SERVER_EMAIL = env('SERVER_EMAIL', default='noreply@example.com')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -101,10 +106,40 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database - PostgreSQL
-DATABASES = {
-    'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
-}
+# Database - PostgreSQL es la única base soportada.
+# Prioridad: DATABASE_URL > Variables individuales (DB_NAME, DB_USER, ...).
+# Si ninguna está configurada, el proyecto NO arranca.
+from django.core.exceptions import ImproperlyConfigured
+
+if env('DATABASE_URL', default=None):
+    # Formato: postgresql://user:password@host:port/dbname
+    DATABASES = {
+        'default': env.db('DATABASE_URL'),
+    }
+elif env('DB_NAME', default=None):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST', default='localhost'),
+            'PORT': env('DB_PORT', default='5432'),
+        }
+    }
+else:
+    raise ImproperlyConfigured(
+        "Debe configurarse DATABASE_URL o las variables DB_NAME/DB_USER/DB_PASSWORD "
+        "en el archivo .env. SQLite no está soportado en este proyecto."
+    )
+
+# Validación: solo PostgreSQL está soportado.
+_engine = DATABASES['default'].get('ENGINE', '')
+if 'postgresql' not in _engine:
+    raise ImproperlyConfigured(
+        f"Motor de base de datos no soportado: {_engine!r}. "
+        "Solo se admite PostgreSQL (django.db.backends.postgresql)."
+    )
 
 AUTH_PASSWORD_VALIDATORS = [
     {

@@ -5,7 +5,8 @@ echo ========================================
 echo.
 
 REM Reemplaza con una API Key real de tu base de datos
-set API_KEY=552e7d3b304944bda090f0b220c715ac
+REM Puedes obtenerla desde el admin: /admin/accounts/company/
+if "%API_KEY%"=="" set API_KEY=REEMPLAZAR_CON_API_KEY_REAL
 
 echo Enviando lead de prueba...
 echo.

@@ -1,3 +1,13 @@
+"""
+Datos demo (opcional). Idempotente: solo crea si no existen.
+
+Credenciales por variables de entorno (recomendado):
+  DEMO_SUPERADMIN_EMAIL, DEMO_SUPERADMIN_PASSWORD
+  DEMO_USER_EMAIL, DEMO_USER_PASSWORD
+
+Uso:
+    python setup_data.py
+"""
 import os
 import django
 
@@ -18,32 +28,38 @@ else:
     company = Company.objects.create(name="Empresa Demo")
     print(f"✓ Empresa creada: {company.name}")
 
-# Crear usuario superadmin (admin@sdp.com)
-if not User.objects.filter(email='admin@sdp.com').exists():
-    superadmin = User.objects.create_superuser(
-        username='admin_superadmin_1773338741',
-        email='admin@sdp.com',
-        password='Apice2024!',
-        company=company,
-        is_superadmin=True
-    )
-    print(f"✓ Superadmin creado (email: admin@sdp.com, password: Apice2024!)")
-else:
-    superadmin = User.objects.get(email='admin@sdp.com')
-    print(f"✓ Superadmin ya existe (admin@sdp.com)")
+# Superadmin (configurable por variables de entorno)
+SUPERADMIN_EMAIL = os.environ.get('DEMO_SUPERADMIN_EMAIL', 'admin@example.com')
+SUPERADMIN_PASSWORD = os.environ.get('DEMO_SUPERADMIN_PASSWORD', 'changeme-admin')
 
-# Crear usuario regular (martindesia@hotmail.com)
-if not User.objects.filter(email='martindesia@hotmail.com').exists():
-    regular_user = User.objects.create_user(
-        username='martindesia',
-        email='martindesia@hotmail.com',
-        password='Apice2024!',
-        company=company
+if not User.objects.filter(email=SUPERADMIN_EMAIL).exists():
+    superadmin = User.objects.create_superuser(
+        username=SUPERADMIN_EMAIL.split('@')[0],
+        email=SUPERADMIN_EMAIL,
+        password=SUPERADMIN_PASSWORD,
+        company=company,
+        is_superadmin=True,
     )
-    print(f"✓ Usuario regular creado (email: martindesia@hotmail.com, password: Apice2024!)")
+    print(f"✓ Superadmin creado: {SUPERADMIN_EMAIL}")
 else:
-    regular_user = User.objects.get(email='martindesia@hotmail.com')
-    print(f"✓ Usuario regular ya existe (martindesia@hotmail.com)")
+    superadmin = User.objects.get(email=SUPERADMIN_EMAIL)
+    print(f"✓ Superadmin ya existe: {SUPERADMIN_EMAIL}")
+
+# Usuario regular (configurable por variables de entorno)
+REGULAR_EMAIL = os.environ.get('DEMO_USER_EMAIL', 'user@example.com')
+REGULAR_PASSWORD = os.environ.get('DEMO_USER_PASSWORD', 'changeme-user')
+
+if not User.objects.filter(email=REGULAR_EMAIL).exists():
+    regular_user = User.objects.create_user(
+        username=REGULAR_EMAIL.split('@')[0],
+        email=REGULAR_EMAIL,
+        password=REGULAR_PASSWORD,
+        company=company,
+    )
+    print(f"✓ Usuario regular creado: {REGULAR_EMAIL}")
+else:
+    regular_user = User.objects.get(email=REGULAR_EMAIL)
+    print(f"✓ Usuario regular ya existe: {REGULAR_EMAIL}")
 
 # Usar superadmin como owner para datos de prueba
 user = superadmin
@@ -184,8 +200,9 @@ else:
 print("\n✅ Configuración completada!")
 print(f"\n📊 Resumen:")
 print(f"   - Empresa: {company.name}")
-print(f"   - Superadmin: admin@sdp.com / Apice2024!")
-print(f"   - Usuario regular: martindesia@hotmail.com / Apice2024!")
+print(f"   - Superadmin: {SUPERADMIN_EMAIL}")
+print(f"   - Usuario regular: {REGULAR_EMAIL}")
 print(f"   - Contactos: {Contact.objects.filter(company=company).count()}")
 print(f"   - Etapas: {Stage.objects.filter(company=company).count()}")
 print(f"   - Oportunidades: {Deal.objects.filter(company=company).count()}")
+print("\n⚠️  IMPORTANTE: cambia las contraseñas por defecto antes de exponer la app.")
