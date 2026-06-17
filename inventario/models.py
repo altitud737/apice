@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 
-from erp_core.models import TenantModel
+from erp_core.models import TenantModel, Idioma
 
 
 class Articulo(TenantModel):
@@ -27,6 +27,36 @@ class Articulo(TenantModel):
 
     def __str__(self):
         return f"{self.codigo} - {self.descripcion}"
+
+
+class ArticuloTraduccion(models.Model):
+    """
+    Traducción de la descripción de un artículo a un idioma específico.
+    Permite mostrar artículos en distintos idiomas según el contexto/empresa.
+    """
+    articulo = models.ForeignKey(
+        Articulo,
+        on_delete=models.CASCADE,
+        related_name='traducciones',
+        verbose_name='Artículo',
+    )
+    idioma = models.ForeignKey(
+        Idioma,
+        on_delete=models.CASCADE,
+        related_name='articulo_traducciones',
+        verbose_name='Idioma',
+    )
+    descripcion = models.CharField(max_length=200, verbose_name='Descripción traducida')
+
+    class Meta:
+        db_table = 'articulo_traduccion'
+        verbose_name = 'Traducción de Artículo'
+        verbose_name_plural = 'Traducciones de Artículos'
+        unique_together = [('articulo', 'idioma')]
+        ordering = ['articulo__codigo', 'idioma__codigo']
+
+    def __str__(self):
+        return f"{self.articulo.codigo} [{self.idioma.codigo}]: {self.descripcion}"
 
 
 class Almacen(TenantModel):

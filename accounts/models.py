@@ -25,6 +25,16 @@ class Company(models.Model):
         ('exento', 'Exento'),
     ]
 
+    # Código de empresa (alineado con esquema ERP: VARCHAR(10) único).
+    # Nullable para no romper registros existentes; se completa al editar/crear.
+    codigo = models.CharField(
+        max_length=10,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name='Código de empresa',
+        help_text='Código corto único de la empresa (ERP).',
+    )
     name = models.CharField(max_length=255)
     industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, default='otro', verbose_name='Industria')
     description = models.TextField(blank=True, null=True, verbose_name='Descripción')

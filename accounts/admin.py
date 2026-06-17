@@ -3,7 +3,9 @@ from .models import Company, User
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'created_at')
+    list_display = ('codigo', 'name', 'is_active', 'created_at')
+    list_filter = ('is_active', 'industry')
+    search_fields = ('codigo', 'name')
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):

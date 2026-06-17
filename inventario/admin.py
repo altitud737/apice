@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Articulo, Almacen, Stock, MovimientoStock
+from .models import Articulo, ArticuloTraduccion, Almacen, Stock, MovimientoStock
+
+
+class ArticuloTraduccionInline(admin.TabularInline):
+    model = ArticuloTraduccion
+    extra = 0
+    autocomplete_fields = ('idioma',)
 
 
 @admin.register(Articulo)
@@ -8,6 +14,15 @@ class ArticuloAdmin(admin.ModelAdmin):
     list_filter = ('empresa', 'activo', 'unidad_medida')
     search_fields = ('codigo', 'descripcion')
     readonly_fields = ('created_at', 'updated_at')
+    inlines = [ArticuloTraduccionInline]
+
+
+@admin.register(ArticuloTraduccion)
+class ArticuloTraduccionAdmin(admin.ModelAdmin):
+    list_display = ('articulo', 'idioma', 'descripcion')
+    list_filter = ('idioma',)
+    search_fields = ('articulo__codigo', 'descripcion')
+    autocomplete_fields = ('articulo', 'idioma')
 
 
 @admin.register(Almacen)

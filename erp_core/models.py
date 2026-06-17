@@ -42,6 +42,41 @@ class Idioma(models.Model):
         return f"{self.codigo} - {self.descripcion}"
 
 
+class EmpresaIdioma(models.Model):
+    """
+    Relación N:M entre Empresa (accounts.Company) e Idioma.
+    Define qué idiomas tiene habilitados cada empresa.
+    """
+    empresa = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        related_name='idiomas',
+        verbose_name='Empresa',
+    )
+    idioma = models.ForeignKey(
+        Idioma,
+        on_delete=models.CASCADE,
+        related_name='empresas',
+        verbose_name='Idioma',
+    )
+    es_predeterminado = models.BooleanField(
+        default=False,
+        verbose_name='Predeterminado',
+        help_text='Idioma por defecto de la empresa.',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'empresa_idioma'
+        verbose_name = 'Idioma de Empresa'
+        verbose_name_plural = 'Idiomas de Empresas'
+        unique_together = [('empresa', 'idioma')]
+        ordering = ['empresa', 'idioma']
+
+    def __str__(self):
+        return f"{self.empresa} - {self.idioma}"
+
+
 class Cliente(TenantModel):
     """
     Cliente del ERP (entidad de facturación/ventas).
