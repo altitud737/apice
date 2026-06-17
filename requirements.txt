@@ -1,18 +1,20 @@
 # Core Django
-Django==6.0.3
+Django==6.0.6
 django-environ==0.13.0
 
-# Database (PostgreSQL obligatorio)
-psycopg2-binary==2.9.10
+# Database (PostgreSQL 18+ obligatorio)
+# psycopg v3 es el driver moderno y mantenido; reemplaza a psycopg2.
+# Django >= 4.2 lo detecta automáticamente con ENGINE='django.db.backends.postgresql'.
+psycopg[binary]==3.3.4
 
 # Auth
-django-allauth==65.15.0
+django-allauth==65.18.0
 
 # API
-djangorestframework==3.16.0
+djangorestframework==3.17.1
 
 # UI / forms
-django-crispy-forms==2.5
+django-crispy-forms==2.6
 crispy-tailwind==1.0.3
 django-htmx==1.27.0
 
@@ -20,10 +22,10 @@ django-htmx==1.27.0
 django-cors-headers==4.9.0
 
 # HTTP client (integraciones MercadoLibre, Zoho Mail, WhatsApp)
-requests==2.32.3
+requests==2.34.2
 
 # Static files
 whitenoise==6.12.0
 
 # Production server
-gunicorn==25.1.0
+gunicorn==26.0.0

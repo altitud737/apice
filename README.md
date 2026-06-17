@@ -15,8 +15,8 @@ Stack: **Django 6 + PostgreSQL**.
 
 ## Requisitos
 
-- Python 3.10+
-- PostgreSQL 13+
+- Python 3.12+
+- PostgreSQL 18+
 - Git
 
 ## Setup rápido
