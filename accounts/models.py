@@ -1,6 +1,18 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 import uuid
+
+
+class ERPUserManager(UserManager):
+    """
+    Manager que extiende el UserManager de Django para que `createsuperuser`
+    (built-in) también marque al usuario como administrador global del ERP
+    (`is_superadmin=True`). Mantiene compatibilidad total con la API estándar.
+    """
+
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_superadmin', True)
+        return super().create_superuser(username, email=email, password=password, **extra_fields)
 
 class Company(models.Model):
     INDUSTRY_CHOICES = [
@@ -82,7 +94,16 @@ class User(AbstractUser):
     can_view_integrations = models.BooleanField(default=True, verbose_name='Puede ver integraciones')
     
     last_activity = models.DateTimeField(null=True, blank=True, verbose_name='Última actividad')
-    
+
+    objects = ERPUserManager()
+
+    def save(self, *args, **kwargs):
+        # Mantener consistencia: cualquier superuser de Django es también
+        # administrador global del ERP.
+        if self.is_superuser:
+            self.is_superadmin = True
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.username
 
@@ -197,7 +218,7 @@ class DemoRequest(models.Model):
     name = models.CharField(max_length=255, verbose_name='Nombre')
     email = models.EmailField(verbose_name='Email')
     company = models.CharField(max_length=255, verbose_name='Empresa')
-    message = models.TextField(verbose_name='¿Qué te interesaría encontrar en Apice?')
+    message = models.TextField(verbose_name='¿Qué te interesaría encontrar en el sistema?')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='Estado')
     admin_notes = models.TextField(blank=True, null=True, verbose_name='Notas del Admin')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Solicitud')

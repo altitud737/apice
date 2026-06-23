@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0007_company_fiscal_fields'),
-        ('erp_core', '0001_initial'),
+        ('core', '0001_initial'),
         ('inventario', '0001_initial'),
     ]
 
@@ -29,9 +29,9 @@ class Migration(migrations.Migration):
                 ('impuesto', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=18, verbose_name='Impuesto')),
                 ('total', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=18, verbose_name='Total')),
                 ('observaciones', models.TextField(blank=True, default='', verbose_name='Observaciones')),
-                ('cliente', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='pedidos', to='erp_core.cliente', verbose_name='Cliente')),
+                ('cliente', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='pedidos', to='core.cliente', verbose_name='Cliente')),
                 ('empresa', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s_set', to='accounts.company', verbose_name='Empresa')),
-                ('vendedor', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='pedidos', to='erp_core.vendedor', verbose_name='Vendedor')),
+                ('vendedor', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='pedidos', to='core.vendedor', verbose_name='Vendedor')),
             ],
             options={
                 'verbose_name': 'Pedido',

@@ -10,9 +10,9 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from datetime import timedelta
 from .models import User, Company, SupportTicket, DemoRequest, SystemNotification, UserNotification
-from apice.models import Lead, Contact, Deal, Activity, Task, Stage, Pipeline, MessageTemplate
-from apice.mail_models import ZohoMailIntegration, EmailMessage, EmailDraft
-from apice.integrations_mercadolibre_models import MercadoLibreIntegration, MercadoLibreWebhookEvent
+from crm.models import Lead, Contact, Deal, Activity, Task, Stage, Pipeline, MessageTemplate
+from crm.mail_models import ZohoMailIntegration, EmailMessage, EmailDraft
+from crm.integrations_mercadolibre_models import MercadoLibreIntegration, MercadoLibreWebhookEvent
 
 
 def superadmin_required(view_func):
@@ -22,7 +22,7 @@ def superadmin_required(view_func):
             return redirect('account_login')
         if not request.user.is_superadmin:
             messages.error(request, 'No tienes permisos para acceder a esta sección.')
-            return redirect('apice:dashboard')
+            return redirect('crm:dashboard')
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -401,7 +401,7 @@ def admin_impersonate_user(request, user_id):
         login(request, user_to_impersonate, backend='django.contrib.auth.backends.ModelBackend')
         
         messages.success(request, f'✓ Ahora estás viendo el sistema como {user_to_impersonate.email}')
-        return redirect('apice:dashboard')
+        return redirect('crm:dashboard')
     
     return redirect('accounts:admin_users')
 
@@ -425,7 +425,7 @@ def admin_stop_impersonating(request):
         messages.success(request, '✓ Has vuelto a tu cuenta de administrador.')
         return redirect('accounts:admin_dashboard')
     
-    return redirect('apice:dashboard')
+    return redirect('crm:dashboard')
 
 
 @login_required

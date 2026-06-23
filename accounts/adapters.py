@@ -5,8 +5,9 @@ Maneja la creación de usuarios y empresas en el flujo de registro
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
+from django.urls import reverse
 from .models import Company
-from apice.email_service import EmailService
+from crm.email_service import EmailService
 import secrets
 
 
@@ -14,7 +15,7 @@ class AccountAdapter(DefaultAccountAdapter):
     """
     Adaptador personalizado para manejar registro de usuarios
     """
-    
+
     def authentication_failed(self, request, **kwargs):
         """
         Personaliza el mensaje de error cuando falla la autenticación
@@ -22,6 +23,17 @@ class AccountAdapter(DefaultAccountAdapter):
         """
         from django.contrib import messages
         messages.error(request, "Mail o contraseña incorrecta")
+
+    def get_login_redirect_url(self, request):
+        """
+        Ruteo post-login según el rol del usuario:
+        - Administrador global del ERP (is_superadmin) -> panel /superadmin/.
+        - Resto de usuarios -> dashboard del CRM (comportamiento previo).
+        """
+        user = getattr(request, 'user', None)
+        if user is not None and user.is_authenticated and getattr(user, 'is_superadmin', False):
+            return reverse('accounts:admin_dashboard')
+        return super().get_login_redirect_url(request)
     
     def save_user(self, request, user, form, commit=True):
         """

@@ -15,6 +15,9 @@ db.sqlite3-journal
 /staticfiles/
 /media/
 
+# Database backups locales (generados por scripts/backup_db.bat)
+/backups/
+
 # Environment variables
 .env
 .env.local

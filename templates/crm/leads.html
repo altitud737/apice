@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2" style="color: #111111;">Leads</h1>
+            <p class="text-gray-500">Gestiona los leads capturados desde formularios web</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total</p>
+                    <p class="text-3xl font-bold" style="color: #111111;">{{ stats.total }}</p>
+                </div>
+                <div class="p-3 bg-gray-100 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Nuevos</p>
+                    <p class="text-3xl font-bold" style="color: #111111;">{{ stats.new }}</p>
+                </div>
+                <div class="p-3 bg-gray-100 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><path d="M12 5v14m-7-7h14"/></svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Contactados</p>
+                    <p class="text-3xl font-bold" style="color: #111111;">{{ stats.contacted }}</p>
+                </div>
+                <div class="p-3 bg-gray-100 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Calificados</p>
+                    <p class="text-3xl font-bold" style="color: #111111;">{{ stats.qualified }}</p>
+                </div>
+                <div class="p-3 bg-gray-100 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 mb-6">
+        <form method="GET" class="flex gap-4">
+            <input type="text" name="search" value="{{ search }}" placeholder="Buscar por nombre, email o teléfono..." class="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;">
+            
+            <select name="status" class="bg-white border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;">
+                <option value="">Todos los estados</option>
+                <option value="new" {% if status_filter == 'new' %}selected{% endif %}>Nuevo</option>
+                <option value="contacted" {% if status_filter == 'contacted' %}selected{% endif %}>Contactado</option>
+                <option value="qualified" {% if status_filter == 'qualified' %}selected{% endif %}>Calificado</option>
+                <option value="converted" {% if status_filter == 'converted' %}selected{% endif %}>Convertido</option>
+                <option value="lost" {% if status_filter == 'lost' %}selected{% endif %}>Perdido</option>
+            </select>
+            
+            <select name="source" class="bg-white border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400" style="color: #111111;">
+                <option value="">Todos los orígenes</option>
+                <option value="website" {% if source_filter == 'website' %}selected{% endif %}>🌐 Sitio Web</option>
+                <option value="facebook" {% if source_filter == 'facebook' %}selected{% endif %}>📘 Facebook</option>
+                <option value="instagram" {% if source_filter == 'instagram' %}selected{% endif %}>📸 Instagram</option>
+                <option value="mercadolibre" {% if source_filter == 'mercadolibre' %}selected{% endif %}>🛒 MercadoLibre</option>
+                <option value="whatsapp" {% if source_filter == 'whatsapp' %}selected{% endif %}>🟢 WhatsApp</option>
+                <option value="google_ads" {% if source_filter == 'google_ads' %}selected{% endif %}>📢 Google Ads</option>
+            </select>
+            
+            <button type="submit" class="px-6 py-2 text-white rounded-xl font-medium transition-colors" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                Filtrar
+            </button>
+            
+            {% if search or status_filter or source_filter %}
+            <a href="{% url 'crm:leads_list' %}" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-xl font-medium transition-colors" style="color: #111111;">
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Leads Table -->
+    <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Lead</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Origen</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for lead in leads %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-5">
+                            <div>
+                                <p class="text-sm font-semibold mb-1" style="color: #111111;">{{ lead.name }}</p>
+                                <p class="text-xs text-gray-500 flex items-center gap-2 mb-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                    {{ lead.email }}
+                                </p>
+                                {% if lead.phone %}
+                                <p class="text-xs text-gray-500 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                    {{ lead.phone }}
+                                </p>
+                                {% endif %}
+                                {% if lead.message %}
+                                <p class="text-xs text-gray-500 mt-2 italic">"{{ lead.message|truncatewords:15 }}"</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="text-2xl" title="{{ lead.get_source_display }}">{{ lead.get_source_icon }}</span>
+                            <p class="text-xs text-gray-500 mt-1">{{ lead.get_source_display }}</p>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider 
+                                {% if lead.status == 'new' %}bg-blue-50 text-blue-600 border border-blue-200
+                                {% elif lead.status == 'contacted' %}bg-amber-50 text-amber-600 border border-amber-200
+                                {% elif lead.status == 'qualified' %}bg-green-50 text-green-600 border border-green-200
+                                {% elif lead.status == 'converted' %}bg-purple-50 text-purple-600 border border-purple-200
+                                {% else %}bg-gray-100 text-gray-600 border border-gray-200{% endif %}">
+                                {{ lead.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <p class="text-xs text-gray-500">{{ lead.created_at|date:"d/m/Y" }}</p>
+                            <p class="text-xs text-gray-400">{{ lead.created_at|date:"H:i" }}</p>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                {% if lead.phone %}
+                                <a href="https://wa.me/{{ lead.phone|cut:' '|cut:'-'|cut:'('|cut:')' }}" target="_blank" class="p-2 rounded-lg hover:bg-emerald-500/10 text-emerald-500 hover:text-emerald-400 transition-all" title="WhatsApp">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                                </a>
+                                {% endif %}
+                                
+                                {% if lead.status != 'converted' %}
+                                <form method="POST" action="{% url 'crm:convert_lead' lead.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="px-3 py-1.5 text-white text-xs font-medium rounded-lg transition-colors" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'" onclick="return confirm('¿Convertir este lead en contacto?')">
+                                        Convertir
+                                    </button>
+                                </form>
+                                {% else %}
+                                <a href="{% url 'crm:contact_profile' lead.converted_to_contact.id %}" class="px-3 py-1.5 bg-purple-50 text-purple-600 text-xs font-medium rounded-lg hover:bg-purple-100 transition-colors">
+                                    Ver Contacto
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center gap-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <p class="text-gray-500">No hay leads para mostrar</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

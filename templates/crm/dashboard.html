@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | ERP CRM{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-7xl mx-auto">
+    <header class="mb-10">
+        <h1 class="text-3xl font-bold tracking-tight" style="color: #111111;">Dashboard</h1>
+        <p class="text-gray-500 mt-1">Métricas de rendimiento de {{ user.company.name }}.</p>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-600">Oportunidades Abiertas</span>
+            </div>
+            <p class="text-3xl font-bold" style="color: #111111;">{{ stats.open_deals_count }}</p>
+        </div>
+
+        <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-600">Ventas Cerradas</span>
+            </div>
+            <p class="text-3xl font-bold" style="color: #111111;">{{ stats.closed_won_count }}</p>
+        </div>
+
+        <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-600">Valor del Pipeline</span>
+            </div>
+            <p class="text-3xl font-bold" style="color: #111111;">${{ stats.pipeline_value|floatformat:2 }}</p>
+        </div>
+
+        <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #111111;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-600">Pronóstico</span>
+            </div>
+            <p class="text-3xl font-bold" style="color: #111111;">${{ stats.revenue_forecast|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recent Deals -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold" style="color: #111111;">Oportunidades Recientes</h3>
+                <a href="{% url 'crm:pipeline' %}" class="text-xs font-bold hover:opacity-70 uppercase tracking-wider" style="color: #111111;">Ver Pipeline</a>
+            </div>
+            <div class="space-y-4">
+                {% for deal in recent_deals %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
+                    <div>
+                        <p class="text-sm font-bold" style="color: #111111;">{{ deal.title }}</p>
+                        <p class="text-xs text-gray-500">{{ deal.contact.name }} • {{ deal.stage.name }}</p>
+                    </div>
+                    <span class="text-sm font-bold" style="color: #111111;">${{ deal.value|floatformat:0 }}</span>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm italic py-4">No hay oportunidades recientes.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Deals by Stage -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h3 class="text-lg font-bold mb-6" style="color: #111111;">Distribución por Etapa</h3>
+            <div class="space-y-4">
+                {% for stage in deals_by_stage %}
+                <div>
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="text-gray-600 font-medium">{{ stage.name }}</span>
+                        <span class="font-bold" style="color: #111111;">{{ stage.count }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                        {% widthratio stage.count stats.open_deals_count 100 as percentage %}
+                        <div class="h-1.5 rounded-full" style="width: {{ percentage|default:0 }}%; background-color: #111111;"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm italic py-4">No hay etapas configuradas.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% load humanize %}
+{% if conversations %}
+{% for conv in conversations %}
+<div
+    class="border-b border-gray-100 px-4 py-3.5 cursor-pointer transition-all duration-150 hover:bg-gray-50 {% if conv.unread_count > 0 %}bg-blue-50/30 border-l-2 border-l-blue-400{% else %}border-l-2 border-l-transparent{% endif %}"
+    hx-get="{% url 'crm:mercadolibre:conversation_detail' conv.pack_id %}"
+    hx-target="#conversation-detail"
+    hx-swap="innerHTML"
+>
+    <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 uppercase {% if conv.unread_count > 0 %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+            {{ conv.buyer_name|make_list|first }}
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-[13px] font-semibold truncate {% if conv.unread_count > 0 %}text-gray-900{% else %}text-gray-700{% endif %}">
+                    {{ conv.buyer_name }}
+                </span>
+                <span class="text-[11px] text-gray-400 whitespace-nowrap">
+                    {% if conv.last_date %}{{ conv.last_date|timesince }} atrás{% endif %}
+                </span>
+            </div>
+            <p class="text-[13px] text-gray-500 mt-0.5 line-clamp-2 leading-snug">
+                {% if not conv.is_from_buyer %}<span class="text-gray-400">Vos: </span>{% endif %}{{ conv.last_message|truncatechars:90 }}
+            </p>
+            <div class="flex items-center gap-1.5 mt-2">
+                {% if conv.unread_count > 0 %}
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 ring-1 ring-blue-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                    {{ conv.unread_count }} nuevo{{ conv.unread_count|pluralize:"s" }}
+                </span>
+                {% endif %}
+                <span class="text-[11px] text-gray-400">{{ conv.msg_count }} mensaje{{ conv.msg_count|pluralize:"s" }}</span>
+                {% if conv.order %}
+                <span class="text-[11px] text-gray-400 truncate ml-auto">Orden #{{ conv.order.ml_order_id }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="flex flex-col items-center justify-center py-20 px-6 text-center">
+    <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/></svg>
+    </div>
+    <p class="text-sm font-medium text-gray-500">Sin conversaciones</p>
+    <p class="text-xs text-gray-400 mt-1">{% if current_filter %}No hay conversaciones con este filtro{% else %}Los mensajes post-venta aparecerán acá{% endif %}</p>
+</div>
+{% endif %}

@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('erp_core', '0002_empresaidioma'),
+        ('core', '0002_empresaidioma'),
         ('inventario', '0002_stock_stock_cantidad_no_negativa'),
     ]
 
@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('descripcion', models.CharField(max_length=200, verbose_name='Descripción traducida')),
                 ('articulo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='traducciones', to='inventario.articulo', verbose_name='Artículo')),
-                ('idioma', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='articulo_traducciones', to='erp_core.idioma', verbose_name='Idioma')),
+                ('idioma', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='articulo_traducciones', to='core.idioma', verbose_name='Idioma')),
             ],
             options={
                 'verbose_name': 'Traducción de Artículo',

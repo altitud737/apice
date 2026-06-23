@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Orden #{{ order.ml_order_id }} — ERP CRM{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-6">
+    <!-- Back + header -->
+    <div class="mb-6">
+        <a href="{% url 'crm:mercadolibre:orders_list' %}" class="text-[12px] text-gray-400 hover:text-brand transition-colors mb-3 inline-flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Volver a órdenes
+        </a>
+        <div class="flex items-center justify-between mt-2">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold" style="color: #111111;">Orden #{{ order.ml_order_id }}</h1>
+                    <p class="text-xs text-gray-400">
+                        {{ order.date_created|date:"d M Y, H:i" }}
+                        {% if order.status == 'paid' %}
+                        <span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-600 ring-1 ring-green-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Pagada
+                        </span>
+                        {% elif order.status == 'confirmed' %}
+                        <span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 ring-1 ring-blue-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Confirmada
+                        </span>
+                        {% elif order.status == 'cancelled' %}
+                        <span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-600 ring-1 ring-red-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Cancelada
+                        </span>
+                        {% else %}
+                        <span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-50 text-gray-500 ring-1 ring-gray-200">
+                            {{ order.get_status_display }}
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-2xl font-bold" style="color: #111111;">${{ order.total_amount|floatformat:0 }}</p>
+                <p class="text-[11px] text-gray-400">{{ order.currency_id }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- LEFT COLUMN: Items + Shipping -->
+        <div class="lg:col-span-2 space-y-5">
+
+            <!-- Items card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="text-[14px] font-semibold" style="color: #111111;">Items ({{ items|length }})</h3>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for item in items %}
+                    <div class="px-5 py-4 flex items-center gap-4">
+                        {% if item.thumbnail %}
+                        <img src="{{ item.thumbnail }}" alt="" class="w-14 h-14 rounded-lg object-cover bg-gray-100 shrink-0">
+                        {% elif item.product and item.product.thumbnail %}
+                        <img src="{{ item.product.thumbnail }}" alt="" class="w-14 h-14 rounded-lg object-cover bg-gray-100 shrink-0">
+                        {% else %}
+                        <div class="w-14 h-14 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+                        </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[13px] font-medium truncate" style="color: #111111;">{{ item.title }}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[11px] text-gray-400 font-mono">{{ item.ml_item_id }}</span>
+                                {% if item.variation_attributes %}
+                                {% for attr in item.variation_attributes %}
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{{ attr.name }}: {{ attr.value }}</span>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-[13px] font-semibold" style="color: #111111;">${{ item.unit_price|floatformat:0 }}</p>
+                            <p class="text-[11px] text-gray-400">x{{ item.quantity }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="px-5 py-3 bg-gray-50 flex items-center justify-between">
+                    <span class="text-[12px] text-gray-500 font-medium">Total</span>
+                    <span class="text-[14px] font-bold" style="color: #111111;">${{ order.total_amount|floatformat:0 }} {{ order.currency_id }}</span>
+                </div>
+            </div>
+
+            <!-- Shipping card -->
+            {% if order.shipping_id %}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-[14px] font-semibold" style="color: #111111;">Envío</h3>
+                    <a href="{% url 'crm:mercadolibre:shipment_label' order.id %}" target="_blank" class="px-3 py-1.5 rounded-lg text-[12px] font-medium text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors flex items-center gap-1.5 border border-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                        Etiqueta PDF
+                    </a>
+                </div>
+                <div class="px-5 py-4">
+                    <!-- Tracking info -->
+                    <div class="flex items-center gap-4 mb-4 text-[12px] text-gray-500">
+                        {% if order.shipping_carrier %}
+                        <span class="flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="13" x="6" y="4" rx="2"/><path d="m2 7 4 3-4 3"/><path d="m22 7-4 3 4 3"/></svg>
+                            {{ order.shipping_carrier }}
+                        </span>
+                        {% endif %}
+                        {% if order.shipping_tracking_number %}
+                        <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{{ order.shipping_tracking_number }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Progress bar -->
+                    {% if shipping_steps %}
+                    <div class="relative">
+                        <div class="flex items-center justify-between">
+                            {% for step in shipping_steps %}
+                            <div class="flex flex-col items-center flex-1 {% if not forloop.last %}relative{% endif %}">
+                                <!-- Dot -->
+                                <div class="w-4 h-4 rounded-full border-2 z-10 flex items-center justify-center
+                                    {% if step.status == 'completed' %}bg-green-500 border-green-500
+                                    {% elif step.status == 'current' %}bg-white border-green-500 ring-4 ring-green-100
+                                    {% elif step.status == 'error' %}bg-red-500 border-red-500
+                                    {% else %}bg-white border-gray-300
+                                    {% endif %}">
+                                    {% if step.status == 'completed' %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    {% endif %}
+                                </div>
+                                <!-- Label -->
+                                <p class="text-[11px] font-medium mt-2 text-center
+                                    {% if step.status == 'completed' %}text-green-600
+                                    {% elif step.status == 'current' %}text-green-700 font-semibold
+                                    {% elif step.status == 'error' %}text-red-600
+                                    {% else %}text-gray-400
+                                    {% endif %}">
+                                    {{ step.label }}
+                                </p>
+                                {% if step.sublabel %}
+                                <p class="text-[10px] text-gray-400 mt-0.5">{{ step.sublabel }}</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Line connecting dots -->
+                        <div class="absolute top-2 left-0 right-0 h-0.5 bg-gray-200" style="margin-left: 12.5%; margin-right: 12.5%;">
+                            {% if shipping_steps|length > 1 %}
+                            {% with completed_count=0 %}
+                            {% for step in shipping_steps %}{% if step.status == 'completed' or step.status == 'current' %}{% with ''|center:1 as x %}{% endwith %}{% endif %}{% endfor %}
+                            {% endwith %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Receiver address -->
+                    {% if order.shipping_receiver_address %}
+                    <div class="mt-5 pt-4 border-t border-gray-100">
+                        <p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-2">Dirección de entrega</p>
+                        <p class="text-[13px] text-gray-600">
+                            {{ order.shipping_receiver_address.street_name }} {{ order.shipping_receiver_address.street_number }}
+                            {% if order.shipping_receiver_address.comment %}<span class="text-gray-400"> ({{ order.shipping_receiver_address.comment }})</span>{% endif %}
+                        </p>
+                        <p class="text-[12px] text-gray-400">
+                            {{ order.shipping_receiver_address.city }}{% if order.shipping_receiver_address.state %}, {{ order.shipping_receiver_address.state }}{% endif %}
+                            {% if order.shipping_receiver_address.zip_code %} ({{ order.shipping_receiver_address.zip_code }}){% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent messages (if any) -->
+            {% if order_messages %}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-[14px] font-semibold" style="color: #111111;">Mensajes recientes</h3>
+                    <span class="text-[11px] text-gray-400">{{ order_messages|length }} mensaje{{ order_messages|length|pluralize:"s" }}</span>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for msg in order_messages %}
+                    <div class="px-5 py-3 flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 {% if msg.is_from_buyer %}bg-gray-200 text-gray-500{% else %}bg-gray-900 text-white{% endif %}">
+                            {% if msg.is_from_buyer %}{{ msg.sender_nickname|make_list|first }}{% else %}V{% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[13px] text-gray-600 line-clamp-2">{{ msg.text }}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">{{ msg.message_date|date:"d/m H:i" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- RIGHT COLUMN: Buyer + Payment + CRM links -->
+        <div class="space-y-5">
+
+            <!-- Buyer card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-[14px] font-semibold" style="color: #111111;">Comprador</h3>
+                    <a href="{% url 'crm:mercadolibre:buyer_profile' order.buyer_id %}" class="text-[11px] text-gray-400 hover:text-brand font-medium transition-colors">Ver perfil →</a>
+                </div>
+                <div class="px-5 py-4 space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500 uppercase">
+                            {{ order.buyer_nickname|make_list|first }}
+                        </div>
+                        <div>
+                            <p class="text-[13px] font-semibold" style="color: #111111;">{{ order.buyer_nickname }}</p>
+                            {% if order.buyer_first_name %}
+                            <p class="text-[12px] text-gray-400">{{ order.buyer_first_name }} {{ order.buyer_last_name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if order.buyer_email %}
+                    <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        {{ order.buyer_email }}
+                    </div>
+                    {% endif %}
+
+                    {% if order.buyer_phone %}
+                    <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        {{ order.buyer_phone }}
+                    </div>
+                    {% endif %}
+
+                    <div class="flex items-center gap-2 text-[12px] text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        ID: {{ order.buyer_id }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="text-[14px] font-semibold" style="color: #111111;">Pago</h3>
+                </div>
+                <div class="px-5 py-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[12px] text-gray-500">Total</span>
+                        <span class="text-[13px] font-semibold" style="color: #111111;">${{ order.total_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[12px] text-gray-500">Pagado</span>
+                        <span class="text-[13px] font-medium {% if order.paid_amount >= order.total_amount %}text-green-600{% else %}text-yellow-600{% endif %}">${{ order.paid_amount|floatformat:2 }}</span>
+                    </div>
+                    {% if order.payment_method %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-[12px] text-gray-500">Método</span>
+                        <span class="text-[12px] text-gray-600">{{ order.payment_method|title }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.status_detail %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-[12px] text-gray-500">Detalle</span>
+                        <span class="text-[12px] text-gray-600">{{ order.status_detail }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- CRM Links card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="text-[14px] font-semibold" style="color: #111111;">CRM</h3>
+                </div>
+                <div class="px-5 py-4 space-y-2">
+                    {% if order.contact %}
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-gray-600 hover:bg-gray-50 hover:text-brand transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        Contacto: {{ order.contact }}
+                    </a>
+                    {% endif %}
+                    {% if order.deal %}
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-gray-600 hover:bg-gray-50 hover:text-brand transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        Deal: {{ order.deal }}
+                    </a>
+                    {% endif %}
+                    {% if order.lead %}
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-gray-600 hover:bg-gray-50 hover:text-brand transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Lead: {{ order.lead }}
+                    </a>
+                    {% endif %}
+                    {% if not order.contact and not order.deal and not order.lead %}
+                    <p class="text-[12px] text-gray-400 py-2">Sin vínculos al CRM</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Dates card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="text-[14px] font-semibold" style="color: #111111;">Fechas</h3>
+                </div>
+                <div class="px-5 py-4 space-y-2">
+                    {% if order.date_created %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-[12px] text-gray-500">Creada</span>
+                        <span class="text-[12px] text-gray-600">{{ order.date_created|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.date_closed %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-[12px] text-gray-500">Cerrada</span>
+                        <span class="text-[12px] text-gray-600">{{ order.date_closed|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.last_updated %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-[12px] text-gray-500">Última actualización</span>
+                        <span class="text-[12px] text-gray-600">{{ order.last_updated|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

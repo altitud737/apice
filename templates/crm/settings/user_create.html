@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'crm:settings_users' %}" class="p-2 hover:bg-zinc-900 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-500"><path d="m15 18-6-6 6-6"/></svg>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-white">Crear Usuario</h1>
+                <p class="text-zinc-500">Agrega un nuevo miembro al equipo</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="max-w-3xl">
+        <form method="POST" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <!-- Información Básica -->
+                <div class="pb-6 border-b border-zinc-800">
+                    <h3 class="text-lg font-bold text-white mb-4">Información Básica</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-zinc-400 mb-2">Nombre</label>
+                            <input 
+                                type="text" 
+                                name="first_name" 
+                                id="first_name"
+                                class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                                placeholder="Juan"
+                            >
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-zinc-400 mb-2">Apellido</label>
+                            <input 
+                                type="text" 
+                                name="last_name" 
+                                id="last_name"
+                                class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                                placeholder="Pérez"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="email" class="block text-sm font-medium text-zinc-400 mb-2">Email *</label>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            id="email"
+                            required
+                            class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                            placeholder="juan@empresa.com"
+                        >
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="password" class="block text-sm font-medium text-zinc-400 mb-2">Contraseña *</label>
+                        <input 
+                            type="text" 
+                            name="password" 
+                            id="password"
+                            required
+                            class="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
+                            placeholder="Contraseña temporal"
+                        >
+                        <p class="text-xs text-zinc-500 mt-1">El usuario deberá cambiarla en su primer inicio de sesión</p>
+                    </div>
+                </div>
+
+                <!-- Rol -->
+                <div class="pb-6 border-b border-zinc-800">
+                    <h3 class="text-lg font-bold text-white mb-4">Rol</h3>
+                    
+                    <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                        <input type="checkbox" name="is_company_admin" class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                        <div>
+                            <p class="text-sm font-medium text-white">Administrador de Empresa</p>
+                            <p class="text-xs text-zinc-500">Acceso completo a configuración y gestión de usuarios</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Permisos -->
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">Permisos</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                            <input type="checkbox" name="can_send_emails" checked class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                            <div>
+                                <p class="text-sm font-medium text-white">Enviar Emails</p>
+                                <p class="text-xs text-zinc-500">Puede enviar y recibir emails</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                            <input type="checkbox" name="can_view_contacts" checked class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                            <div>
+                                <p class="text-sm font-medium text-white">Ver Contactos</p>
+                                <p class="text-xs text-zinc-500">Acceso a la lista de contactos</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                            <input type="checkbox" name="can_view_deals" checked class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                            <div>
+                                <p class="text-sm font-medium text-white">Ver Deals</p>
+                                <p class="text-xs text-zinc-500">Acceso a oportunidades de venta</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                            <input type="checkbox" name="can_view_pipeline" checked class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                            <div>
+                                <p class="text-sm font-medium text-white">Ver Pipeline</p>
+                                <p class="text-xs text-zinc-500">Acceso al pipeline de ventas</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                            <input type="checkbox" name="can_view_integrations" checked class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                            <div>
+                                <p class="text-sm font-medium text-white">Ver Integraciones</p>
+                                <p class="text-xs text-zinc-500">Acceso a integraciones</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                            <input type="checkbox" name="can_view_settings" class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                            <div>
+                                <p class="text-sm font-medium text-white">Ver Configuración</p>
+                                <p class="text-xs text-zinc-500">Acceso a configuración</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-4 bg-black border border-zinc-800 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-colors">
+                            <input type="checkbox" name="can_manage_users" class="w-5 h-5 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-zinc-900">
+                            <div>
+                                <p class="text-sm font-medium text-white">Gestionar Usuarios</p>
+                                <p class="text-xs text-zinc-500">Crear y editar usuarios</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 mt-8 pt-6 border-t border-zinc-800">
+                <button type="submit" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-colors">
+                    Crear Usuario
+                </button>
+                <a href="{% url 'crm:settings_users' %}" class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -4,11 +4,12 @@ Tests del flujo ERP completo: Pedido -> Validacion -> Stock -> MovimientoStock.
 from datetime import date
 from decimal import Decimal
 
-from django.db import IntegrityError, transaction
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.test import TestCase
 
 from accounts.models import Company
-from erp_core.models import Cliente, Vendedor
+from core.models import Cliente, Vendedor
 from inventario.models import Articulo, Almacen, Stock, MovimientoStock
 from inventario.services import descontar_stock, reponer_stock
 from ventas.exceptions import (
@@ -140,12 +141,11 @@ class CalculoTotalesTests(ERPFlowTestBase):
 
 class ValidacionStockTests(ERPFlowTestBase):
 
-    def test_stock_no_negativo_check_constraint(self):
+    def test_stock_no_negativo_validation(self):
         s = Stock.objects.get(articulo=self.art1, almacen=self.almacen)
         s.cantidad = Decimal('-1')
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                s.save()
+        with self.assertRaises(ValidationError):
+            s.full_clean()
 
     def test_descontar_stock_funciona_si_hay_disponibilidad(self):
         descontar_stock(self.art1, self.almacen, Decimal('3'), referencia='test')

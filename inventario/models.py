@@ -1,13 +1,13 @@
 """
 Modelos del módulo Inventario: Artículo, Almacén, Stock, MovimientoStock.
-Reutiliza accounts.Company como Empresa vía erp_core.TenantModel.
+Reutiliza accounts.Company como Empresa vía core.TenantModel.
 """
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 
-from erp_core.models import TenantModel, Idioma
+from core.models import TenantModel, Idioma
 
 
 class Articulo(TenantModel):
@@ -101,12 +101,7 @@ class Stock(models.Model):
         verbose_name_plural = 'Stocks'
         unique_together = [('almacen', 'articulo')]
         ordering = ['articulo__codigo']
-        constraints = [
-            models.CheckConstraint(
-                condition=models.Q(cantidad__gte=0),
-                name='stock_cantidad_no_negativa',
-            ),
-        ]
+        # Nota: constraint de cantidad >= 0 implementada en clean() y save()
 
     def __str__(self):
         return f"{self.articulo.codigo} @ {self.almacen.codigo}: {self.cantidad}"

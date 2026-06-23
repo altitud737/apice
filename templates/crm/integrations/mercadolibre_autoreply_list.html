@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Respuestas Automaticas - MercadoLibre{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-5xl mx-auto">
+    <header class="mb-8">
+        <a href="{% url 'crm:mercadolibre:status' %}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brand mb-3 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            MercadoLibre
+        </a>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight" style="color: #111111;">Respuestas Automaticas</h1>
+                <p class="text-gray-500 mt-1">Configura plantillas para responder preguntas automaticamente</p>
+            </div>
+            <a href="{% url 'crm:mercadolibre:autoreply_create' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Nueva Plantilla
+            </a>
+        </div>
+    </header>
+
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-3 rounded-xl text-sm {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% elif message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not is_connected %}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+        <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            <p class="text-sm text-amber-700">Conecta tu cuenta de MercadoLibre para activar las respuestas automaticas.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- How it works -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-6 shadow-sm">
+        <div class="flex items-start gap-3">
+            <div class="p-2 bg-purple-50 rounded-lg shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-600"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold" style="color: #111111;">Como funciona</p>
+                <p class="text-xs text-gray-500 mt-1">Cuando llega una pregunta, el sistema busca coincidencias con las palabras clave de tus plantillas. Si encuentra una coincidencia, responde automaticamente. Las plantillas con mayor prioridad se evaluan primero. Si ninguna plantilla coincide, se usan reglas basicas de fallback (stock, envio, precio, etc.).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates List -->
+    {% if templates %}
+    <div class="space-y-3">
+        {% for template in templates %}
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <div class="p-5">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-2">
+                            <h3 class="text-sm font-bold" style="color: #111111;">{{ template.name }}</h3>
+                            {% if template.is_active %}
+                            <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] rounded-full font-medium">Activa</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded-full font-medium">Inactiva</span>
+                            {% endif %}
+                            {% if template.priority > 0 %}
+                            <span class="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] rounded-full font-medium">Prioridad {{ template.priority }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mb-3">
+                            {% for keyword in template.keywords %}
+                            <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-[11px] rounded-lg font-medium">{{ keyword }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-600">{{ template.response_text }}</p>
+                        </div>
+                        <div class="flex items-center gap-4 mt-3">
+                            <span class="text-[11px] text-gray-400">Usada {{ template.times_used }} veces</span>
+                            {% if template.last_used_at %}
+                            <span class="text-[11px] text-gray-400">Ultima vez: {{ template.last_used_at|date:"d/m H:i" }}</span>
+                            {% endif %}
+                            <span class="text-[11px] text-gray-400">Creada: {{ template.created_at|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <!-- Toggle -->
+                        <button onclick="toggleTemplate({{ template.id }}, this)"
+                                class="p-2 rounded-lg hover:bg-gray-100 transition-colors {% if template.is_active %}text-emerald-600{% else %}text-gray-400{% endif %}"
+                                title="{% if template.is_active %}Desactivar{% else %}Activar{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                {% if template.is_active %}
+                                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                                {% else %}
+                                <polyline points="20 6 9 17 4 12"/>
+                                {% endif %}
+                            </svg>
+                        </button>
+                        <!-- Edit -->
+                        <a href="{% url 'crm:mercadolibre:autoreply_edit' template.id %}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500" title="Editar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                        </a>
+                        <!-- Delete -->
+                        <form method="POST" action="{% url 'crm:mercadolibre:autoreply_delete' template.id %}" onsubmit="return confirm('Eliminar plantilla &quot;{{ template.name }}&quot;?')" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="p-2 rounded-lg hover:bg-red-50 transition-colors text-gray-400 hover:text-red-600" title="Eliminar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white border border-gray-200 rounded-2xl p-12 shadow-sm text-center">
+        <div class="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="font-bold mb-1" style="color: #111111;">No hay plantillas configuradas</h3>
+        <p class="text-sm text-gray-500 mb-6">Crea tu primera plantilla para empezar a responder preguntas automaticamente</p>
+        <a href="{% url 'crm:mercadolibre:autoreply_create' %}" class="inline-flex items-center gap-2 px-5 py-2 bg-brand text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Crear Primera Plantilla
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Fallback Rules Info -->
+    <div class="mt-8 bg-white border border-gray-200 rounded-2xl shadow-sm">
+        <div class="p-5 border-b border-gray-100">
+            <h3 class="text-sm font-bold" style="color: #111111;">Reglas de Fallback</h3>
+            <p class="text-xs text-gray-500 mt-1">Si ninguna plantilla coincide, estas reglas basicas se aplican automaticamente</p>
+        </div>
+        <div class="divide-y divide-gray-50">
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">stock</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">disponible</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">hay</span>
+                </div>
+                <span class="text-[11px] text-gray-400 max-w-xs truncate">Tenemos stock disponible...</span>
+            </div>
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">envio</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">despacho</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">llega</span>
+                </div>
+                <span class="text-[11px] text-gray-400 max-w-xs truncate">Hacemos envios a todo el pais...</span>
+            </div>
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">precio</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">descuento</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">cuotas</span>
+                </div>
+                <span class="text-[11px] text-gray-400 max-w-xs truncate">El precio publicado es el vigente...</span>
+            </div>
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">garantia</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">devolucion</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">cambio</span>
+                </div>
+                <span class="text-[11px] text-gray-400 max-w-xs truncate">Ofrecemos garantia segun la politica de ML...</span>
+            </div>
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">medida</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">tamaño</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">talle</span>
+                </div>
+                <span class="text-[11px] text-gray-400 max-w-xs truncate">Las medidas estan en la descripcion...</span>
+            </div>
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">color</span>
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded-lg font-medium">colores</span>
+                </div>
+                <span class="text-[11px] text-gray-400 max-w-xs truncate">Los colores disponibles estan en las variantes...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleTemplate(templateId, btn) {
+    fetch(`/integrations/mercadolibre/autoreply/${templateId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            location.reload();
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

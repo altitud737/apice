@@ -6,7 +6,7 @@ from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 
-from erp_core.models import TenantModel, Cliente, Vendedor
+from core.models import TenantModel, Cliente, Vendedor
 from inventario.models import Articulo, Almacen
 
 IVA_ALICUOTA = Decimal('0.21')

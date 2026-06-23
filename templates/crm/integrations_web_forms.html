@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header con botón volver -->
+    <div class="mb-6">
+        <a href="{% url 'crm:integrations' %}" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Volver a Integraciones
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-3xl font-bold" style="color: #111111;">Formularios Web</h1>
+            <span class="px-3 py-1 bg-green-50 text-green-600 text-xs font-bold rounded-full border border-green-200">CONECTADO</span>
+        </div>
+        <p class="text-gray-500">Captura leads automáticamente desde formularios de contacto en tu sitio web</p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
+        <div class="flex items-start gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <div>
+                <h4 class="font-bold mb-2" style="color: #111111;">Tips de Integración</h4>
+                <ul class="text-sm text-gray-600 space-y-2">
+                    <li>• Los leads aparecerán automáticamente en la sección <strong style="color: #111111;">Leads</strong></li>
+                    <li>• Puedes revisar y calificar cada lead antes de convertirlo en contacto</li>
+                    <li>• El campo <code class="font-mono bg-gray-100 px-1 rounded" style="color: #111111;">source</code> te permite identificar de dónde viene cada lead</li>
+                    <li>• Usa <code class="font-mono bg-gray-100 px-1 rounded" style="color: #111111;">metadata</code> para guardar información adicional (UTM params, página, etc.)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración API -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Endpoint URL -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider mb-4" style="color: #111111;">Endpoint API</h3>
+            <div class="bg-black border border-gray-800 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-400 uppercase tracking-wider">URL</span>
+                    <button onclick="copyToClipboard('{{ endpoint_url }}')" class="text-xs text-green-400 hover:text-green-300 font-medium">
+                        Copiar
+                    </button>
+                </div>
+                <code class="text-sm text-white break-all">{{ endpoint_url }}</code>
+            </div>
+        </div>
+
+        <!-- API Key -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider mb-4" style="color: #111111;">API Key</h3>
+            <div class="bg-black border border-gray-800 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-400 uppercase tracking-wider">Clave de Autenticación</span>
+                    <button onclick="copyToClipboard('{{ api_key }}')" class="text-xs text-green-400 hover:text-green-300 font-medium">
+                        Copiar
+                    </button>
+                </div>
+                <code class="text-sm text-white font-mono">{{ api_key }}</code>
+            </div>
+            <p class="text-xs text-amber-600 mt-3 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                No compartas esta clave. Es única para tu empresa.
+            </p>
+        </div>
+    </div>
+
+    <!-- Ejemplos de Código -->
+    <div class="space-y-6">
+        <!-- Ejemplo JavaScript -->
+        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider" style="color: #111111;">Ejemplo JavaScript (Fetch API)</h3>
+                    <p class="text-xs text-gray-500 mt-1">Integra este código en tu formulario web</p>
+                </div>
+                <button onclick="copyToClipboard(`{{ js_example|escapejs }}`)" class="px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    Copiar Código
+                </button>
+            </div>
+            <div class="p-6 bg-black">
+                <pre class="text-sm text-gray-300 overflow-x-auto"><code>{{ js_example }}</code></pre>
+            </div>
+        </div>
+
+        <!-- Ejemplo HTML Completo -->
+        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider" style="color: #111111;">Formulario HTML Completo</h3>
+                    <p class="text-xs text-gray-500 mt-1">Copia y pega este código en tu sitio web</p>
+                </div>
+                <button onclick="copyToClipboard(`{{ html_example|escapejs }}`)" class="px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    Copiar Código
+                </button>
+            </div>
+            <div class="p-6 bg-black">
+                <pre class="text-sm text-gray-300 overflow-x-auto"><code>{{ html_example }}</code></pre>
+            </div>
+        </div>
+
+        <!-- Ejemplo cURL -->
+        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider" style="color: #111111;">Ejemplo cURL (Testing)</h3>
+                    <p class="text-xs text-gray-500 mt-1">Prueba el endpoint desde la terminal</p>
+                </div>
+                <button onclick="copyToClipboard(`{{ curl_example|escapejs }}`)" class="px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors" style="background-color: #111111;" onmouseover="this.style.backgroundColor='#000000'" onmouseout="this.style.backgroundColor='#111111'">
+                    Copiar Código
+                </button>
+            </div>
+            <div class="p-6 bg-black">
+                <pre class="text-sm text-gray-300 overflow-x-auto"><code>{{ curl_example }}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Campos Disponibles -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider mb-4" style="color: #111111;">Campos Disponibles</h3>
+            <div class="space-y-3">
+                <div class="flex items-start gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-green-600 flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <div>
+                        <p class="text-sm font-medium" style="color: #111111;">name</p>
+                        <p class="text-xs text-gray-500">Nombre del contacto (requerido)</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-green-600 flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <div>
+                        <p class="text-sm font-medium" style="color: #111111;">email</p>
+                        <p class="text-xs text-gray-500">Email del contacto (requerido)</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-4 h-4 rounded-full border-2 border-gray-400 flex-shrink-0 mt-0.5"></div>
+                    <div>
+                        <p class="text-sm font-medium" style="color: #111111;">phone</p>
+                        <p class="text-xs text-gray-500">Teléfono (opcional)</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-4 h-4 rounded-full border-2 border-gray-400 flex-shrink-0 mt-0.5"></div>
+                    <div>
+                        <p class="text-sm font-medium" style="color: #111111;">message</p>
+                        <p class="text-xs text-gray-500">Mensaje o consulta (opcional)</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-4 h-4 rounded-full border-2 border-gray-400 flex-shrink-0 mt-0.5"></div>
+                    <div>
+                        <p class="text-sm font-medium" style="color: #111111;">source</p>
+                        <p class="text-xs text-gray-500">Origen: website, facebook, instagram, etc.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Respuestas del API -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider mb-4" style="color: #111111;">Respuestas del API</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 bg-green-50 text-green-600 text-xs font-bold rounded">201</span>
+                        <span class="text-sm font-medium" style="color: #111111;">Éxito</span>
+                    </div>
+                    <pre class="text-xs text-gray-300 bg-black border border-gray-800 rounded-lg p-3 overflow-x-auto"><code>{
+  "success": true,
+  "message": "Lead registrado",
+  "lead": { "id": 1, ... }
+}</code></pre>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 bg-red-50 text-red-600 text-xs font-bold rounded">400</span>
+                        <span class="text-sm font-medium" style="color: #111111;">Error de Validación</span>
+                    </div>
+                    <pre class="text-xs text-gray-300 bg-black border border-gray-800 rounded-lg p-3 overflow-x-auto"><code>{
+  "error": "Datos inválidos",
+  "details": { ... }
+}</code></pre>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 bg-red-50 text-red-600 text-xs font-bold rounded">401</span>
+                        <span class="text-sm font-medium" style="color: #111111;">API Key Inválida</span>
+                    </div>
+                    <pre class="text-xs text-gray-300 bg-black border border-gray-800 rounded-lg p-3 overflow-x-auto"><code>{
+  "error": "API Key inválida"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Mostrar notificación de éxito
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        notification.textContent = '✓ Copiado al portapapeles';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

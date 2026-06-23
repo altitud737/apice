@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255, verbose_name='Nombre')),
                 ('email', models.EmailField(max_length=254, verbose_name='Email')),
                 ('company', models.CharField(max_length=255, verbose_name='Empresa')),
-                ('message', models.TextField(verbose_name='¿Qué te interesaría encontrar en Apice?')),
+                ('message', models.TextField(verbose_name='¿Qué te interesaría encontrar en el sistema?')),
                 ('status', models.CharField(choices=[('pending', 'Pendiente'), ('contacted', 'Contactado'), ('account_created', 'Cuenta Creada'), ('rejected', 'Rechazado')], default='pending', max_length=20, verbose_name='Estado')),
                 ('admin_notes', models.TextField(blank=True, null=True, verbose_name='Notas del Admin')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Solicitud')),

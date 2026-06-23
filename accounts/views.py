@@ -8,7 +8,7 @@ def signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('apice:dashboard')
+            return redirect('crm:dashboard')
     else:
         form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})

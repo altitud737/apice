@@ -1,30 +1,48 @@
-# Apice CRM + ERP
+# ERP
 
-Sistema CRM multi-tenant en evolución hacia ERP completo (Inventario y Ventas).
-Stack: **Django 6 + PostgreSQL**.
+Base de un ERP multi-tenant construido sobre **Django 6 + PostgreSQL**.
 
-## Apps principales
+Diseñado para que múltiples desarrolladores puedan clonar el repositorio,
+levantar el entorno y trabajar en módulos independientes (CRM, Inventario,
+Ventas, etc.) bajo una arquitectura común.
+
+---
+
+## Arquitectura
 
 | App | Responsabilidad |
 |---|---|
-| `accounts` | Empresas (multi-tenant), usuarios, permisos, super-admin |
-| `apice` | CRM clásico (contactos, deals, pipeline, leads) + integraciones MercadoLibre / Zoho Mail / WhatsApp |
-| `erp_core` | Modelos base ERP: `TenantModel`, `Cliente`, `Vendedor` |
-| `inventario` | Artículos, Almacenes, Stock, MovimientoStock |
-| `ventas` | Pedidos, detalles, confirmación con descuento de stock atómico |
+| `config` | Configuración Django (`settings`, `urls`, `wsgi`, `asgi`) |
+| `core` | Núcleo ERP: `TenantModel`, `Cliente`, `Vendedor`, `Idioma` |
+| `accounts` | Tenants (`Company`), usuarios, permisos y super-admin |
+| `crm` | Contactos, Leads, Pipeline, Deals, Plantillas, Notificaciones e integraciones (MercadoLibre, Zoho Mail, WhatsApp) |
+| `inventario` | Artículos, Almacenes, Stock y movimientos transaccionales |
+| `ventas` | Pedidos, confirmación atómica con descuento de stock |
+
+### Reglas de arquitectura
+
+- Toda entidad ERP hereda de `core.TenantModel` (FK obligatoria a `accounts.Company`).
+- Toda modificación de stock pasa por `inventario.services` (transaccional, `select_for_update`).
+- La confirmación de pedidos vive en `ventas.services.confirmar_pedido` (validar → descontar → registrar movimiento → cambiar estado, todo atómico).
+- `Stock.cantidad >= 0` se valida en `Stock.clean()` y en la capa de servicios.
+
+---
 
 ## Requisitos
 
 - Python 3.12+
-- PostgreSQL 18+
+- PostgreSQL 14+ (recomendado 16+)
 - Git
+- (Opcional) `psql`, `pg_dump` para administración local.
 
-## Setup rápido
+---
+
+## Instalación
 
 ```bash
-# 1. Clonar
-git clone https://github.com/altitud737/apice.git
-cd apice
+# 1. Clonar el repositorio
+git clone <url-del-repositorio> erp
+cd erp
 
 # 2. Entorno virtual
 python -m venv venv
@@ -36,109 +54,143 @@ source venv/bin/activate
 # 3. Dependencias
 pip install -r requirements.txt
 
-# 4. Configurar entorno
-cp .env.example .env
-# Editar .env con tus credenciales de PostgreSQL
+# 4. Variables de entorno
+cp .env.example .env     # Linux/Mac
+copy .env.example .env   # Windows
+# Editar .env con las credenciales locales
 ```
 
-### Variables mínimas en `.env`
+### Configuración mínima en `.env`
 
 ```env
-SECRET_KEY="cambiar-por-clave-segura-en-produccion"
+SECRET_KEY="cambiar-por-clave-segura"
 DEBUG=True
-
-DATABASE_URL="postgresql://usuario:password@localhost:5432/apice_crm"
-
-# Opcional: integraciones
-ML_CLIENT_ID=""
-ML_CLIENT_SECRET=""
-ML_REDIRECT_URI="http://localhost:3000/integrations/mercadolibre/callback"
+DATABASE_URL="postgresql://postgres:tu_password@localhost:5432/erp_db"
 ```
 
-### Crear base de datos PostgreSQL
+Alternativamente se pueden usar variables individuales:
+`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`.
+
+---
+
+## PostgreSQL
 
 ```bash
-# Conectarse como superusuario
 psql -U postgres
 ```
+
 ```sql
-CREATE DATABASE apice_crm;
+CREATE DATABASE erp_db;
 \q
 ```
+
+> El proyecto **solo soporta PostgreSQL**. Si no se configura `DATABASE_URL`
+> o las variables `DB_*`, Django no arranca (ver `core/settings.py`).
+
+---
 
 ## Inicialización
 
 ```bash
-# Migrar
+# Aplicar migraciones
 python manage.py migrate
 
 # Crear superusuario
 python manage.py createsuperuser
 
-# (Opcional) datos demo
-python setup_data.py
+# (Opcional) datos de demostración
+python scripts/setup_data.py
 
-# Iniciar servidor
+# Servidor de desarrollo
 python manage.py runserver 3000
 ```
 
-Acceder en:
-- App: http://127.0.0.1:3000/
-- Admin: http://127.0.0.1:3000/admin/
+URLs:
+
+- App: <http://127.0.0.1:3000/>
+- Admin Django: <http://127.0.0.1:3000/admin/>
+- Panel super-admin: <http://127.0.0.1:3000/superadmin/>
+
+---
 
 ## Tests
 
 ```bash
+# Todos
 python manage.py test
-# Solo ERP:
-python manage.py test ventas inventario erp_core
+
+# Por módulo ERP
+python manage.py test ventas inventario core
 ```
 
-## Estructura
+---
+
+## Verificación rápida
+
+```bash
+python manage.py check
+python manage.py showmigrations
+```
+
+Atajos:
+
+- `iniciar-erp.bat` (raíz, Windows) — `migrate` + `runserver`.
+- `scripts/run.sh` (Linux/CI) — bootstrap completo.
+- `scripts/backup_db.bat` (Windows) — backup vía `pg_dump`.
+- `scripts/verificar_produccion.bat` (Windows) — checks pre-deploy.
+
+Ver `scripts/README.md` para el detalle de cada utilidad.
+
+---
+
+## Estructura del repositorio
 
 ```
 .
-├── accounts/          # Tenant, usuarios, super-admin
-├── apice/             # CRM + integraciones
-├── erp_core/          # Base ERP (TenantModel, Cliente, Vendedor)
-├── inventario/        # Artículos, Stock, Movimientos
-├── ventas/            # Pedidos, confirmación, services transaccionales
-├── core/              # settings.py, urls.py, wsgi.py, asgi.py
-├── templates/         # Templates Django
-├── static/            # CSS/JS/imágenes
+├── config/          # Configuración Django (settings, urls, wsgi, asgi)
+├── core/            # Núcleo ERP: TenantModel, Cliente, Vendedor, Idioma
+├── accounts/        # Tenants, usuarios, super-admin
+├── crm/             # Contactos, leads, pipeline, integraciones
+├── inventario/      # Artículos, stock, movimientos
+├── ventas/          # Pedidos, confirmación transaccional
+├── templates/       # Templates Django (un subdirectorio por app)
+├── static/          # CSS / JS / imágenes
+├── docs/            # Documentación técnica detallada
+├── scripts/         # Utilidades operativas (backup, seed, deploy checks)
 ├── manage.py
+├── iniciar-erp.bat  # Atajo Windows: migrate + runserver
 ├── requirements.txt
 ├── .env.example
-├── iniciar-crm.bat    # Atajo Windows: migrate + runserver
-├── backup_db.bat      # Backup PostgreSQL via pg_dump
-└── verificar_produccion.bat  # Checks pre-deploy
+└── README.md
 ```
 
-## Reglas de arquitectura ERP
-
-- Todas las entidades ERP heredan de `erp_core.TenantModel` (FK obligatoria a `accounts.Company`).
-- Modificaciones de stock **siempre** vía `inventario.services` (transaccionales con `select_for_update`).
-- Confirmación de pedidos vía `ventas.services.confirmar_pedido` (atómico: valida → descuenta → registra movimiento → cambia estado).
-- `Stock.cantidad >= 0` garantizado por `CheckConstraint` a nivel DB.
+---
 
 ## Despliegue (resumen)
 
-1. Definir `DATABASE_URL` en el entorno
-2. `DJANGO_SETTINGS_MODULE=core.settings_production`
+1. Definir `DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS` en el entorno.
+2. `DJANGO_SETTINGS_MODULE=config.settings_production`
 3. `python manage.py collectstatic --noinput`
 4. `python manage.py migrate`
-5. `gunicorn core.wsgi`
+5. `gunicorn config.wsgi`
+
+Variables adicionales relevantes en producción:
+`ZOHO_ZEPTOMAIL_API_KEY_TOKEN`, `ML_CLIENT_ID`, `ML_CLIENT_SECRET`,
+`ML_REDIRECT_URI`, `EMAIL_HOST*`, `REDIS_URL`.
+
+---
 
 ## Documentación adicional
 
-- `MIGRACION_POSTGRESQL.md` — migración histórica
-- `SISTEMA_SUPER_ADMIN.md` — gestión de empresas y permisos
-- `API_LEADS_EXAMPLES.md` — captura de leads vía API
-- `INTEGRACION_MERCADOLIBRE.md` — OAuth2 + sincronización
-- `INTEGRACION_ZOHO_MAIL.md` — emails
-- `ARQUITECTURA_LEADS_CONTACTOS.md` — diseño leads/contactos
-- `AUTENTICACION_ALLAUTH.md` — login flow
+Toda la documentación técnica vive en `docs/`:
 
-## Licencia
-
-Propiedad de Altitud737.
+- `docs/MIGRACION_POSTGRESQL.md` — migración histórica a PostgreSQL.
+- `docs/SISTEMA_SUPER_ADMIN.md` — gestión de empresas y permisos.
+- `docs/API_LEADS_EXAMPLES.md` / `docs/SETUP_API_LEADS.md` — captura de leads vía API.
+- `docs/ARQUITECTURA_LEADS_CONTACTOS.md` — diseño Leads/Contactos.
+- `docs/INTEGRACION_MERCADOLIBRE.md` — OAuth2 y sincronización ML.
+- `docs/INTEGRACION_ZOHO_MAIL.md` — integración de correo.
+- `docs/AUTENTICACION_ALLAUTH.md` — flujo de login.
+- `docs/PRODUCCION_READY.md` — checklist de producción.
+- `docs/METRICAS_LEADS.md` — métricas y reportes.
+- `docs/DISEÑO_SISTEMA.md` — visión general del sistema.
